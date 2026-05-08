@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pending Approval — JYOTISH</title>
+<script src="api-base.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Noto+Sans+Tamil:wght@300;400;600&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#C8A84B;--gold2:#E8C96A;--deep:#08060F;--mid:#100E1E;--surf:#16132A;--tx:#EDE8FF;--mut:#6A6090;--bdr:rgba(50,44,88,.9);--acc:#7C5FCC;--teal:#1AADA0;--red:#E04B4A}
+body{background:var(--deep);color:var(--tx);font-family:'Noto Sans Tamil',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:rgba(16,14,30,.95);border:1px solid rgba(200,168,75,.2);border-radius:24px;padding:40px 32px;max-width:440px;width:100%;text-align:center}
+.icon{font-size:64px;margin-bottom:20px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+h1{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--gold);margin-bottom:10px}
+.sub{color:var(--mut);font-size:13px;line-height:1.8;margin-bottom:24px}
+.status-box{border-radius:14px;padding:20px;margin-bottom:20px}
+.pending{background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.25);color:var(--gold2)}
+.rejected{background:rgba(224,75,74,.08);border:1px solid rgba(224,75,74,.25);color:var(--red)}
+.approved{background:rgba(29,140,104,.08);border:1px solid rgba(29,140,104,.25);color:#1D8C68}
+.status-label{font-size:11px;letter-spacing:2px;font-family:'Space Mono',monospace;margin-bottom:8px}
+.steps{text-align:left;background:var(--surf);border-radius:12px;padding:16px;margin-bottom:20px;font-size:12px;line-height:2.2}
+.step{display:flex;align-items:flex-start;gap:10px}
+.step-num{width:22px;height:22px;border-radius:50%;background:rgba(200,168,75,.2);border:1px solid var(--gold);color:var(--gold);font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-family:'Space Mono',monospace}
+.wa-btn{display:block;width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,#25D366,#128C7E);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;margin-bottom:12px;transition:.2s;font-family:'Noto Sans Tamil',sans-serif}
+.wa-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(37,211,102,.3)}
+.logout-btn{width:100%;padding:11px;border:1px solid var(--bdr);border-radius:12px;background:transparent;color:var(--mut);font-size:12px;cursor:pointer;font-family:'Noto Sans Tamil',sans-serif;transition:.2s}
+.logout-btn:hover{border-color:var(--red);color:var(--red)}
+.refresh-btn{width:100%;padding:12px;border:1px solid rgba(200,168,75,.3);border-radius:12px;background:rgba(200,168,75,.06);color:var(--gold2);font-size:12px;cursor:pointer;font-family:'Noto Sans Tamil',sans-serif;margin-bottom:10px;transition:.2s}
+.refresh-btn:hover{background:rgba(200,168,75,.12)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="content"></div>
+</div>
+<script>
+const API=window.resolveJyotishApiBase();
+const params = new URLSearchParams(location.search);
+const status = params.get('status') || 'pending';
+const token = localStorage.getItem('auth_token');
+const u = JSON.parse(localStorage.getItem('user_data')||localStorage.getItem('user_info')||'{}');
+
+if (!token) { location.href=window.jyotishPageUrl('login.html'); }
+
+function renderPending() {
+  document.getElementById('content').innerHTML = `
+    <div class="icon">⏳</div>
+    <h1>Admin ஒப்புதல் காத்திருக்கிறோம்</h1>
+    <div class="sub">உங்கள் ஜோதிடர் கோரிக்கை Admin Panel-க்கு அனுப்பப்பட்டது.<br>Admin App-ல் நேரடியாக Approve செய்வார்.</div>
+    <div class="status-box pending">
+      <div class="status-label">STATUS · நிலை</div>
+      <div style="font-size:16px;font-weight:700">⏳ Pending Approval</div>
+    </div>
+    <div class="steps">
+      <div class="step"><span class="step-num">1</span><span>Login செய்தீர்கள் ✅</span></div>
+      <div class="step"><span class="step-num">2</span><span>Admin App-ல் நேரடியாக Approve செய்வார் ⏳</span></div>
+      <div class="step"><span class="step-num">3</span><span>Approve ஆனதும் Dashboard தானாக திறக்கும் 🎉</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--teal);margin-bottom:14px;text-align:center;">
+      🔄 ஒவ்வொரு 5 வினாடிக்கும் தானாக சரிபார்க்கிறது...<br>
+      <span style="color:var(--mut);font-size:10px;">📱 Email / WhatsApp தேவையில்லை — App-ல் நேரடி Approval!</span>
+    </div>
+    <button class="refresh-btn" onclick="checkStatus()">🔄 நிலை புதுப்பி / Refresh Status</button>
+    <button class="logout-btn" onclick="logout()">← Logout</button>`;
+}
+
+function renderRejected() {
+  document.getElementById('content').innerHTML = `
+    <div class="icon">❌</div>
+    <h1>கோரிக்கை நிராகரிக்கப்பட்டது</h1>
+    <div class="sub">உங்கள் ஜோதிடர் கோரிக்கை நிராகரிக்கப்பட்டது.<br>Admin-ஐ தொடர்பு கொள்ளவும்.</div>
+    <div class="status-box rejected">
+      <div class="status-label">STATUS</div>
+      <div style="font-size:16px;font-weight:700">❌ Rejected</div>
+    </div>
+    <button class="logout-btn" onclick="logout()">← Back to Login</button>`;
+}
+
+function renderApproved() {
+  document.getElementById('content').innerHTML = `
+    <div class="icon">🎉</div>
+    <h1>நீங்கள் Approved!</h1>
+    <div class="sub">வாழ்த்துக்கள்! Admin உங்களை approve செய்தார்.<br>Dashboard-க்கு தானாக செல்கிறது...</div>
+    <div class="status-box approved">
+      <div class="status-label">STATUS</div>
+      <div style="font-size:16px;font-weight:700">✅ Approved</div>
+    </div>
+    <a href="astro-dashboard.html" style="display:block;width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--acc));border:none;color:#fff;font-size:13px;font-weight:700;text-decoration:none;margin-bottom:10px;text-align:center;">
+      🔮 Dashboard திறக்கவும்
+    </a>
+    <button class="logout-btn" onclick="logout()">← Logout</button>`;
+  // Save approved status to localStorage so astro-dashboard auth guard passes
+  const updated = {...u, status:'Approved', role:'Astrologer'};
+  localStorage.setItem('user_data', JSON.stringify(updated));
+  localStorage.setItem('user_info', JSON.stringify(updated));
+  // Auto-redirect to dashboard after 2 seconds
+  setTimeout(function(){ window.location.href = window.jyotishPageUrl('astro-dashboard.html'); }, 2000);
+}
+
+async function checkStatus() {
+  if (!token) return;
+  try {
+    const res = await fetch(`${API}/api/auth/me?token=${token}`);
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem('user_data', JSON.stringify(data));
+      if (data.status === 'Approved' && data.role === 'Astrologer') renderApproved();
+      else if (data.status === 'Rejected') renderRejected();
+    }
+  } catch(e) {}
+}
+
+function logout() {
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('user_data');
+  localStorage.removeItem('user_info');
+  location.href = window.jyotishPageUrl('login.html');
+}
+
+// Initial render
+if (status === 'rejected') renderRejected();
+else if (u.status === 'Approved') renderApproved();
+else renderPending();
+
+// Auto-check every 5 seconds for instant approval detection
+setInterval(checkStatus, 5000);
+</script>
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position:fixed;top:16px;right:16px;z-index:9999;"></div>
+<script>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'ta',includedLanguages:'ta,en,hi',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'google_translate_element');}</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</body>
+</html>

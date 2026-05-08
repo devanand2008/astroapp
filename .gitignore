@@ -1,0 +1,66 @@
+# ─── Python ───────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ─── Virtual Environments ─────────────────────
+venv/
+venv312/
+env/
+ENV/
+.venv/
+
+# ─── Database (SQLite) ────────────────────────
+# Comment out below lines if you WANT to commit the database
+*.db
+*.sqlite
+*.sqlite3
+
+# ─── Uploads / User Content ───────────────────
+backend/uploads/
+
+# ─── Logs ─────────────────────────────────────
+*.log
+_server*.log
+
+# ─── Environment Variables ────────────────────
+.env
+.env.local
+.env.production
+
+# ─── OS Files ─────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── IDEs ─────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ─── Node (if any frontend build tools) ───────
+node_modules/
+npm-debug.log
+
+# ─── Old app versions ─────────────────────────
+astro app 2.0 web/
+
+# ─── Misc ─────────────────────────────────────
+prompt.txt

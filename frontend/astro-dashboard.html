@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Astrologer Chat — JYOTISH</title>
+<script src="api-base.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;600;700&family=Cormorant+Garamond:wght@600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#08060F;--surf:#16132A;--surf2:#1C1836;--bdr:rgba(50,44,88,.9);--tx:#EDE8FF;--mut:#6A6090;--gold:#C8A84B;--gold2:#E8C96A;--teal:#1AADA0;--green:#1D8C68;--acc:#7C5FCC;--red:#E04B4A}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Noto Sans Tamil',sans-serif;overflow:hidden}
+.app{display:flex;height:100vh}
+
+/* SIDEBAR */
+.sidebar{width:320px;min-width:320px;background:var(--surf);border-right:1px solid var(--bdr);display:flex;flex-direction:column}
+.profile-panel{padding:16px;background:var(--surf2);border-bottom:1px solid var(--bdr)}
+.profile-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.profile-av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--acc));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid var(--gold);position:relative}
+.profile-av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.online-ring{position:absolute;bottom:-2px;right:-2px;width:14px;height:14px;border-radius:50%;border:2px solid var(--surf);background:var(--green)}
+.profile-name{font-size:14px;font-weight:700;color:var(--gold2)}
+.profile-tag{font-size:10px;color:var(--mut);font-family:'Space Mono',monospace;letter-spacing:1px}
+.avail-toggle{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--bdr);border-radius:12px;padding:10px 14px}
+.avail-label{font-size:12px;font-weight:600}
+.avail-on{color:var(--green)}
+.avail-off{color:var(--mut)}
+.toggle{position:relative;width:48px;height:26px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:#2A2550;border-radius:13px;cursor:pointer;transition:.3s}
+.slider:before{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s}
+input:checked+.slider{background:linear-gradient(135deg,var(--green),var(--teal))}
+input:checked+.slider:before{transform:translateX(22px)}
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 16px;border-bottom:1px solid var(--bdr)}
+.stat{background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:10px;text-align:center}
+.stat-num{font-size:22px;font-weight:700;color:var(--gold);font-family:'Space Mono',monospace}
+.stat-lbl{font-size:10px;color:var(--mut)}
+.inbox-header{padding:8px 16px 4px;font-size:10px;color:var(--mut);letter-spacing:2px;font-family:'Space Mono',monospace;display:flex;align-items:center;justify-content:space-between}
+.refresh-btn{background:none;border:none;color:var(--mut);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:6px;transition:.2s}
+.refresh-btn:hover{color:var(--gold);background:rgba(200,168,75,.08)}
+.contact-list{flex:1;overflow-y:auto}
+.contact-list::-webkit-scrollbar{width:3px}
+.contact-list::-webkit-scrollbar-thumb{background:var(--bdr)}
+.contact-item{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:.15s;border-bottom:1px solid rgba(50,44,88,.3)}
+.contact-item:hover,.contact-item.act{background:rgba(124,95,204,.1)}
+.contact-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#0d7a72);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.contact-name{font-size:14px;font-weight:600}
+.contact-preview{font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-time{font-size:10px;color:var(--mut)}
+.unread{background:var(--teal);color:#fff;font-size:10px;font-weight:700;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+.sidebar-actions{padding:12px 16px;border-top:1px solid var(--bdr);display:flex;gap:8px}
+.sb-btn{flex:1;padding:9px;border:1px solid var(--bdr);border-radius:10px;background:transparent;color:var(--mut);font-size:11px;cursor:pointer;transition:.2s;font-family:inherit}
+.sb-btn:hover{border-color:var(--gold);color:var(--gold)}
+
+/* CHAT */
+.chat-area{flex:1;display:flex;flex-direction:column}
+.no-chat{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--mut)}
+.no-chat-logo{font-family:'Cormorant Garamond',serif;font-size:48px;color:var(--gold);letter-spacing:4px}
+.chat-header{padding:12px 20px;background:var(--surf);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:12px}
+.chat-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--teal),#0d7a72);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.chat-name{font-size:15px;font-weight:700}
+.chat-sub{font-size:11px;color:var(--teal)}
+.chat-actions{margin-left:auto;display:flex;gap:6px}
+.act-btn{background:none;border:none;color:var(--mut);font-size:18px;cursor:pointer;padding:6px;border-radius:8px;transition:.2s}
+.act-btn:hover{background:rgba(255,255,255,.07);color:var(--tx)}
+.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.messages::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-thumb{background:var(--bdr)}
+.bubble{max-width:72%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.5;word-break:break-word;animation:popIn .25s ease both}
+@keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+.bubble.recv{align-self:flex-start;background:var(--surf);border:1px solid var(--bdr);border-bottom-left-radius:4px}
+.bubble.sent{align-self:flex-end;background:linear-gradient(135deg,var(--acc),#5d40b0);color:#fff;border-bottom-right-radius:4px;box-shadow:0 4px 16px rgba(124,95,204,.3)}
+.btime{font-size:10px;opacity:.6;margin-top:4px;text-align:right}
+.typing-wrap{align-self:flex-start;background:var(--surf);border:1px solid var(--bdr);border-radius:18px;border-bottom-left-radius:4px;padding:10px 16px;display:none;gap:4px;align-items:center}
+.tdot{width:6px;height:6px;background:var(--mut);border-radius:50%;animation:bounce 1.4s infinite both}
+.tdot:nth-child(1){animation-delay:-.32s}.tdot:nth-child(2){animation-delay:-.16s}
+@keyframes bounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+.input-area{padding:12px 16px;background:var(--surf);border-top:1px solid var(--bdr);display:flex;align-items:flex-end;gap:10px}
+.input-box{flex:1;background:var(--surf2);border:1px solid var(--bdr);border-radius:24px;padding:10px 18px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;resize:none;max-height:100px;transition:.2s}
+.input-box:focus{border-color:var(--acc)}
+.send-btn{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--acc));border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(200,168,75,.35);transition:.2s;flex-shrink:0}
+.send-btn:hover{transform:scale(1.08)}
+.mic-btn{width:44px;height:44px;border-radius:50%;background:var(--surf2);border:1px solid var(--bdr);color:var(--mut);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.mic-btn.rec{background:rgba(224,75,74,.15);border-color:var(--red);color:var(--red);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.voice-bubble{display:flex;align-items:center;gap:8px}
+.vplay{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.notif{position:fixed;top:16px;right:16px;background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:12px 16px;font-size:13px;z-index:999;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:280px;display:none;animation:slideIn .3s ease}
+@keyframes slideIn{from{transform:translateX(120%)}to{transform:translateX(0)}}
+@media(max-width:700px){
+  .sidebar{position:fixed;inset:0;z-index:100;width:100%}
+  .sidebar.hidden{display:none}
+  .chat-header .bk{display:flex!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="profile-panel">
+      <div class="profile-row">
+        <div class="profile-av" id="pav">🔮<span class="online-ring" id="online-ring"></span></div>
+        <div>
+          <div class="profile-name" id="pname">ஜோதிடர்</div>
+          <div class="profile-tag">ASTROLOGER · JYOTISH</div>
+        </div>
+      </div>
+      <div class="avail-toggle">
+        <span class="avail-label avail-on" id="avail-lbl">✅ Available — பயனர்கள் Chat செய்யலாம்</span>
+        <label class="toggle">
+          <input type="checkbox" id="avail-chk" checked onchange="toggleAvailability(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" id="stat-msgs">0</div><div class="stat-lbl">Messages</div></div>
+      <div class="stat"><div class="stat-num" id="stat-users">0</div><div class="stat-lbl">Users</div></div>
+    </div>
+    <div class="inbox-header">
+      பெட்டகம் · உரையாடல்கள்
+      <button class="refresh-btn" onclick="loadContacts()">↺ புதுப்பி</button>
+    </div>
+    <div class="contact-list" id="contact-list"><div style="padding:30px;text-align:center;color:var(--mut)">⏳ ஏற்றுகிறது...</div></div>
+    <div class="sidebar-actions">
+      <button class="sb-btn" onclick="location.href=window.jyotishPageUrl('index.html')">🔮 ஜாதகம்</button>
+      <button class="sb-btn" onclick="location.href=window.jyotishPageUrl('ai-chat.html')">🤖 AI ஜோதிடர்</button>
+      <button class="sb-btn" onclick="logout()">⎋ வெளியேறு</button>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div class="chat-area" id="chat-area">
+    <div class="no-chat" id="no-chat">
+      <div class="no-chat-logo">✦ JYOTISH</div>
+      <div style="font-size:14px;color:var(--gold2)">உங்கள் Chat Dashboard</div>
+      <div style="font-size:12px">ஒரு பயனரை தேர்ந்தெடுக்கவும்</div>
+      <div id="avail-status-big" style="margin-top:10px;font-size:13px;color:var(--green)">✅ You are Available</div>
+    </div>
+  </div>
+</div>
+<div class="notif" id="notif"></div>
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position:fixed;top:16px;right:16px;z-index:9999;"></div>
+<script>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'ta',includedLanguages:'ta,en,hi',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'google_translate_element');}</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script>
+const API=window.resolveJyotishApiBase();
+const token=localStorage.getItem('auth_token');
+const me=JSON.parse(localStorage.getItem('user_data')||localStorage.getItem('user_info')||'{}');
+// Auth guards
+if(!token){location.href=window.jyotishPageUrl('login.html');}
+else if(me.role==='User'){location.href=window.jyotishPageUrl('user-dashboard.html');}
+else if(me.role==='Astrologer' && me.status==='Pending'){location.href=window.jyotishPageUrl('pending.html');}
+else if(me.role==='Astrologer' && me.status==='Rejected'){location.href=window.jyotishPageUrl('login.html');}
+
+let ws=null, peerId=null, peerName='';
+let contacts=[], unreadMap={};
+const CACHE='jyotish_msgs_';
+let msgQueue=[]; // holds messages while WS is connecting
+let mediaRec=null, recChunks=[], recording=false;
+let available=true;
+
+function safeText(v){ return v === undefined || v === null ? '' : String(v); }
+function msgFingerprint(m){
+  return [safeText(m.sender_id), safeText(m.receiver_id), safeText(m.type || m.msg_type || 'text'), safeText(m.content), safeText(m.timestamp).slice(0,19)].join('|');
+}
+function getCachedMessages(id){
+  try { return JSON.parse(localStorage.getItem(CACHE + id) || '[]'); } catch(e) { return []; }
+}
+function setCachedMessages(id, arr){
+  const seen = new Set();
+  const clean = [];
+  arr.forEach(m => {
+    const fp = msgFingerprint(m || {});
+    if (!seen.has(fp)) { seen.add(fp); clean.push(m); }
+  });
+  localStorage.setItem(CACHE + id, JSON.stringify(clean.slice(-100)));
+}
+function previewMessage(m){
+  if (!m) return '';
+  const type = m.type || m.msg_type || 'text';
+  const content = safeText(m.content).trim();
+  if (type === 'voice') return '🎙 Voice message';
+  if (content.startsWith('[BLOCKED')) return '🚫 Blocked';
+  return content.slice(0,30);
+}
+
+// Init profile
+if(me.name)document.getElementById('pname').textContent=me.name;
+if(me.picture){const i=document.createElement('img');i.src=me.picture;document.getElementById('pav').innerHTML='';document.getElementById('pav').appendChild(i);}
+
+// Load availability from localStorage
+const savedAvail=localStorage.getItem('astro_available_'+me.id);
+if(savedAvail==='false'){
+  available=false;
+  document.getElementById('avail-chk').checked=false;
+  document.getElementById('avail-lbl').textContent='⛔ Not Available';
+  document.getElementById('avail-lbl').className='avail-label avail-off';
+  document.getElementById('online-ring').style.background='var(--mut)';
+}
+
+function toggleAvailability(on){
+  available=on;
+  localStorage.setItem('astro_available_'+me.id, String(on));
+  const lbl=document.getElementById('avail-lbl');
+  const ring=document.getElementById('online-ring');
+  const big=document.getElementById('avail-status-big');
+  lbl.textContent=on?'✅ Available — பயனர்கள் Chat செய்யலாம்':'⛔ Not Available — Chat மூடப்பட்டுள்ளது';
+  lbl.className='avail-label '+(on?'avail-on':'avail-off');
+  ring.style.background=on?'var(--green)':'var(--mut)';
+  if(big)big.textContent=on?'✅ You are Available':'⛔ You are Not Available';
+  showNotif(on?'✅ Available ஆனீர்கள்':'⛔ Not Available ஆனீர்கள்');
+  // Notify backend
+  try{
+    fetch(`${API}/api/chat/astrologer-status`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,available:on})});
+  }catch(e){}
+}
+
+async function loadContacts(){
+  // Load from chat history
+  try{
+    const r=await fetch(`${API}/api/chat/contacts?token=${token}`);
+    if(r.ok){
+      contacts=await r.json();
+      document.getElementById('stat-users').textContent=contacts.length;
+      renderContacts();
+      return;
+    }
+  }catch(e){}
+  // Fallback: parse message cache
+  const fallback=[];
+  for(let k in localStorage){
+    if(k.startsWith(CACHE)){
+      const uid=k.replace(CACHE,'');
+      fallback.push({id:uid,name:'User '+uid,picture:''});
+    }
+  }
+  contacts=fallback;
+  renderContacts();
+}
+
+function renderContacts(){
+  const el=document.getElementById('contact-list');
+  if(!contacts.length){el.innerHTML='<div style="padding:30px;text-align:center;color:var(--mut)">📭 இன்னும் யாரும் Chat செய்யவில்லை</div>';return;}
+  el.innerHTML=contacts.map(c=>{
+    const av=c.picture?`<img src="${c.picture}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`:c.name[0];
+    const unread=unreadMap[c.id]?`<div class="unread">${unreadMap[c.id]}</div>`:'';
+    const cached=getCachedMessages(c.id);
+    const last=cached[cached.length-1];
+    const preview=previewMessage(last);
+    return`<div class="contact-item" id="ci-${c.id}" onclick="openChat('${c.id}','${c.name||'User '+c.id}')">
+      <div class="contact-av">${av}</div>
+      <div style="flex:1;min-width:0">
+        <div class="contact-name">${c.name||'User '+c.id}</div>
+        <div class="contact-preview">${escH(preview)}</div>
+      </div>
+      <div>${unread}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('stat-users').textContent=contacts.length;
+}
+
+function openChat(id,name){
+  peerId=id; peerName=name;
+  document.querySelectorAll('.contact-item').forEach(e=>e.classList.remove('act'));
+  const ci=document.getElementById('ci-'+id);
+  if(ci)ci.classList.add('act');
+  if(unreadMap[id]){delete unreadMap[id];renderContacts();}
+
+  const area=document.getElementById('chat-area');
+  area.innerHTML=`
+    <div class="chat-header">
+      <button class="act-btn bk" onclick="closeMobile()" style="display:none">←</button>
+      <div class="chat-av">👤</div>
+      <div>
+        <div class="chat-name">${name}</div>
+        <div class="chat-sub" id="chat-sub">🟢 இணையத்தில் உள்ளார்</div>
+      </div>
+      <div class="chat-actions">
+        <button class="act-btn" onclick="location.href=window.jyotishPageUrl('ai-chat.html')" title="AI">🤖</button>
+      </div>
+    </div>
+    <div class="messages" id="messages">
+      <div class="typing-wrap" id="typing-wrap"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>
+    </div>
+    <div class="input-area">
+      <textarea class="input-box" id="msg-input" placeholder="செய்தி தட்டச்சு செய்யுங்கள்..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this);sendTyping()"></textarea>
+      <button class="mic-btn" id="mic-btn" onclick="toggleRecord()">🎙</button>
+      <button class="send-btn" id="send-btn" onclick="sendMsg()">➤</button>
+    </div>`;
+
+
+  document.getElementById('sidebar').classList.add('hidden');
+  loadHistory();
+  connectWS();
+}
+
+function closeMobile(){document.getElementById('sidebar').classList.remove('hidden');}
+
+function connectWS(){
+  if(ws && ws.readyState===WebSocket.CONNECTING) return;
+  if(ws && ws.readyState===WebSocket.OPEN) ws.close();
+  const uid = me && me.id ? me.id : 2;
+  ws=new WebSocket(API.replace(/^http/,'ws')+`/api/chat/ws/${uid}`);
+  ws.onopen=()=>{
+    while(msgQueue.length){
+      const p=msgQueue.shift();
+      try{ws.send(JSON.stringify(p));}catch(e){}
+    }
+  };
+  ws.onmessage=e=>{
+    let d;
+    try { d=JSON.parse(e.data); } catch(err){ return; }
+    if(!d) return;
+    if(d.type==='typing'){showTyping();return;}
+    if(d.echo===true)return;
+    const myId = me && me.id ? String(me.id) : null;
+    const isMine = myId && String(d.sender_id)===myId;
+    const isCurrentChat=(String(d.sender_id)===String(peerId)||String(d.receiver_id)===String(peerId));
+    if(isCurrentChat&&!isMine){
+      appendBubble(d,false);
+      cacheMsg(d);
+      const statEl=document.getElementById('stat-msgs');
+      if(statEl) statEl.textContent=parseInt(statEl.textContent||0)+1;
+    } else if(!isMine){
+      unreadMap[d.sender_id]=(unreadMap[d.sender_id]||0)+1;
+      renderContacts();
+      showNotif('💬 New message from '+(d.sender_name||'User '+d.sender_id));
+    }
+  };
+  ws.onerror=()=>showNotif('⚠ WebSocket இணைப்பு பிக்ள்');
+  ws.onclose=()=>setTimeout(connectWS,3000);
+}
+
+
+function sendMsg(){
+  const input=document.getElementById('msg-input');
+  if(!input){showNotif('⚠ Chat திறக்கவில்லை');return;}
+  const text=(input.value||'').trim();
+  if(!text)return;
+  if(!peerId){showNotif('⚠ பயனரை தேர்வு செய்யவும்');return;}
+  const myId = me && me.id ? me.id : (me && me.sub ? me.sub : null);
+  if(!myId){showNotif('⚠ Login செய்யவும்');return;}
+  if(isBlocked(text)){showNotif('⛔ தடைப்பட்ட உள்ளடக்கம்!');return;}
+  // Optimistic render immediately
+  const msg={sender_id:myId, receiver_id:peerId, content:text, type:'text', timestamp:new Date().toISOString()};
+  appendBubble(msg,true);
+  cacheMsg(msg);
+  const statEl=document.getElementById('stat-msgs');
+  if(statEl) statEl.textContent=parseInt(statEl.textContent||0)+1;
+  input.value='';input.style.height='auto';
+  const payload={receiver_id:peerId, content:text, type:'text'};
+  if(ws && ws.readyState===WebSocket.OPEN){
+    ws.send(JSON.stringify(payload));
+  } else {
+    msgQueue.push(payload);
+    connectWS();
+    showNotif('🔄 இணைக்கப்படுகிறது... செய்தி அனுப்பப்படும்');
+  }
+}
+
+function isBlocked(t){
+  return /wa\.me|whatsapp|instagram|t\.me/i.test(t)||(t.replace(/\D/g,'').length>9);
+}
+
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+
+let typTimer;
+function sendTyping(){
+  if(!ws||ws.readyState!==1)return;
+  ws.send(JSON.stringify({receiver_id:peerId,type:'typing',content:''}));
+}
+function showTyping(){
+  const tw=document.getElementById('typing-wrap');
+  if(!tw)return;
+  tw.style.display='flex';
+  clearTimeout(typTimer);
+  typTimer=setTimeout(()=>tw.style.display='none',2500);
+}
+
+async function toggleRecord(){
+  const btn=document.getElementById('mic-btn');
+  if(!recording){
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRec=new MediaRecorder(stream);recChunks=[];
+      mediaRec.ondataavailable=e=>recChunks.push(e.data);
+      mediaRec.onstop=sendVoice;
+      mediaRec.start();recording=true;
+      btn.classList.add('rec');btn.textContent='⏹';
+    }catch(e){showNotif('🎙 Mic access needed');}
+  } else {
+    mediaRec.stop();recording=false;
+    btn.classList.remove('rec');btn.textContent='🎙';
+  }
+}
+
+function sendVoice(){
+  const blob=new Blob(recChunks,{type:'audio/webm'});
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const b64=reader.result;
+    ws.send(JSON.stringify({receiver_id:peerId,content:b64,type:'voice'}));
+    appendBubble({sender_id:me.id||2,receiver_id:peerId,content:b64,type:'voice',timestamp:new Date().toISOString()},true);
+  };
+  reader.readAsDataURL(blob);
+}
+
+function appendBubble(msg,isSent){
+  const el=document.getElementById('messages');if(!el)return;
+  const tw=document.getElementById('typing-wrap');
+  const div=document.createElement('div');
+  div.className='bubble '+(isSent?'sent':'recv');
+  const rawTime = msg.timestamp || new Date().toISOString();
+  const time=new Date(rawTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const content = safeText(msg.content || msg.text || '');
+  if((msg.type==='voice'||msg.msg_type==='voice')&&content.startsWith('data:audio')){
+    div.innerHTML=`<div class="voice-bubble"><button class="vplay" onclick="new Audio('${content}').play()">▶</button><span>🎙 Voice</span></div><div class="btime">${time}</div>`;
+  } else if(content.startsWith('[BLOCKED')){
+    div.innerHTML=`<div style="color:var(--red);font-size:12px;font-style:italic;">${escH(content)}</div><div class="btime">${time}</div>`;
+  } else if(content === '') {
+    return; // Skip empty messages
+  } else {
+    div.innerHTML=`<div>${escH(content)}</div><div class="btime">${time}</div>`;
+  }
+  el.insertBefore(div,tw||null);
+  el.scrollTop=el.scrollHeight;
+}
+
+function escH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+async function loadHistory(){
+  const cached=getCachedMessages(peerId);
+  cached.forEach(m=>appendBubble(m,String(m.sender_id)===String(me.id||2)));
+  try{
+    const r=await fetch(`${API}/api/chat/history/${peerId}?token=${token}`);
+    if(r.ok){
+      const msgs=await r.json();
+      if(msgs.length){
+        const el=document.getElementById('messages');
+        const tw=document.getElementById('typing-wrap');
+        while(el.firstChild&&el.firstChild!==tw)el.removeChild(el.firstChild);
+        msgs.forEach(m=>appendBubble(m,String(m.sender_id)===String(me.id||2)));
+        setCachedMessages(peerId,msgs);
+      }
+    }
+  }catch(e){}
+}
+
+function cacheMsg(msg){
+  const arr=getCachedMessages(peerId);
+  arr.push(msg);
+  setCachedMessages(peerId,arr);
+  renderContacts();
+}
+
+function showNotif(text){
+  const el=document.getElementById('notif');
+  el.textContent=text;el.style.display='block';
+  clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',3500);
+}
+
+function logout(){
+  localStorage.removeItem('auth_token');localStorage.removeItem('user_data');localStorage.removeItem('user_info');
+  location.href=window.jyotishPageUrl('login.html');
+}
+
+loadContacts();
+setInterval(loadContacts,30000);
+</script>
+</body>
+</html>

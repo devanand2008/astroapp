@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>User Chat — JYOTISH</title>
+<script src="api-base.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@300;400;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0A0814;--surf:#16132A;--surf2:#1E1A35;--bdr:#322C58;--tx:#EAE6FC;--mut:#8B85AC;--gold:#C8A84B;--gold2:#E8C96A;--teal:#1AADA0;--green:#1D8C68;--acc:#8B6FE0;--red:#E04B4A}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:'Noto Sans Tamil',sans-serif;overflow:hidden}
+.app{display:flex;height:100vh;height:100dvh}
+
+/* SIDEBAR */
+.sidebar{width:340px;min-width:340px;background:var(--surf);border-right:1px solid var(--bdr);display:flex;flex-direction:column;transition:.3s}
+.sidebar-header{padding:14px 16px;background:var(--surf2);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px}
+.user-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--teal));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;cursor:pointer}
+.user-av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.user-name{font-size:14px;font-weight:700;color:var(--tx)}
+.user-role{font-size:10px;color:var(--mut);font-family:'Space Mono',monospace}
+.sidebar-header-icons{margin-left:auto;display:flex;gap:8px}
+.hdr-btn{background:none;border:none;color:var(--mut);font-size:18px;cursor:pointer;padding:6px;border-radius:8px;transition:.2s}
+.hdr-btn:hover{background:rgba(255,255,255,.08);color:var(--tx)}
+.search-box{padding:10px 12px;border-bottom:1px solid var(--bdr)}
+.search-box input{width:100%;background:var(--surf2);border:1px solid var(--bdr);border-radius:20px;padding:8px 14px;color:var(--tx);font-size:13px;outline:none;font-family:inherit}
+.search-box input:focus{border-color:var(--acc)}
+.section-lbl{padding:8px 16px 4px;font-size:10px;color:var(--mut);letter-spacing:2px;font-family:'Space Mono',monospace}
+.contact-list{flex:1;overflow-y:auto}
+.contact-list::-webkit-scrollbar{width:3px}
+.contact-list::-webkit-scrollbar-thumb{background:var(--bdr)}
+.contact-item{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;transition:.15s;border-bottom:1px solid rgba(50,44,88,.3)}
+.contact-item:hover,.contact-item.active{background:rgba(139,111,224,.1)}
+.contact-av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--acc));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;position:relative}
+.contact-av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.online-dot{position:absolute;bottom:2px;right:2px;width:10px;height:10px;border-radius:50%;border:2px solid var(--surf);background:var(--green)}
+.offline-dot{background:var(--mut)}
+.contact-info{flex:1;min-width:0}
+.contact-name{font-size:14px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-preview{font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.contact-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.contact-time{font-size:10px;color:var(--mut)}
+.unread-badge{background:var(--teal);color:#fff;font-size:10px;font-weight:700;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+.avail-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.avail-yes{background:rgba(29,140,104,.15);color:var(--green);border:1px solid rgba(29,140,104,.3)}
+.avail-no{background:rgba(139,133,172,.1);color:var(--mut);border:1px solid rgba(139,133,172,.2)}
+.empty-state{padding:40px 20px;text-align:center;color:var(--mut)}
+.empty-state div{font-size:40px;margin-bottom:10px}
+
+/* CHAT AREA */
+.chat-area{flex:1;display:flex;flex-direction:column;background:radial-gradient(circle at 80% 20%,rgba(139,111,224,.04),transparent 50%)}
+.chat-header{padding:12px 20px;background:var(--surf);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:12px}
+.chat-header .back-btn{display:none;background:none;border:none;color:var(--mut);font-size:22px;cursor:pointer}
+.chat-av{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--acc));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;position:relative}
+.chat-av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.chat-name{font-size:15px;font-weight:700}
+.chat-status{font-size:11px;color:var(--teal);display:flex;align-items:center;gap:4px}
+.chat-status-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.chat-header-actions{margin-left:auto;display:flex;gap:8px}
+.no-chat{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--mut)}
+.no-chat-icon{font-size:60px;opacity:.3}
+.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+.messages::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:4px}
+.day-divider{text-align:center;font-size:11px;color:var(--mut);padding:4px 12px;background:rgba(50,44,88,.4);border-radius:20px;align-self:center;font-family:'Space Mono',monospace}
+.bubble{max-width:72%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.5;position:relative;animation:popIn .25s ease both;word-break:break-word}
+@keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+.bubble.sent{align-self:flex-end;background:linear-gradient(135deg,var(--acc),#6040b8);color:#fff;border-bottom-right-radius:4px;box-shadow:0 4px 15px rgba(139,111,224,.3)}
+.bubble.recv{align-self:flex-start;background:var(--surf);border:1px solid var(--bdr);border-bottom-left-radius:4px;color:var(--tx)}
+.bubble-time{font-size:10px;opacity:.6;margin-top:4px;text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:4px}
+.tick{font-size:12px}
+.tick.read{color:var(--teal)}
+.blocked-msg{font-size:11px;color:var(--red);font-style:italic;padding:2px 0}
+.voice-bubble{display:flex;align-items:center;gap:8px}
+.voice-play{background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.voice-wave{flex:1;height:3px;background:rgba(255,255,255,.3);border-radius:2px;position:relative}
+.voice-dur{font-size:11px;opacity:.7}
+.typing-wrap{align-self:flex-start;background:var(--surf);border:1px solid var(--bdr);border-radius:18px;border-bottom-left-radius:4px;padding:10px 16px;display:none;gap:4px;align-items:center}
+.typing-dot{width:6px;height:6px;background:var(--mut);border-radius:50%;animation:bounce 1.4s infinite both}
+.typing-dot:nth-child(1){animation-delay:-.32s}
+.typing-dot:nth-child(2){animation-delay:-.16s}
+@keyframes bounce{0%,80%,100%{transform:scale(0)}40%{transform:scale(1)}}
+.input-area{padding:12px 16px;background:var(--surf);border-top:1px solid var(--bdr);display:flex;align-items:flex-end;gap:10px}
+.input-box{flex:1;background:var(--surf2);border:1px solid var(--bdr);border-radius:24px;padding:10px 18px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;resize:none;max-height:100px;transition:.2s;line-height:1.4}
+.input-box:focus{border-color:var(--acc);box-shadow:0 0 0 2px rgba(139,111,224,.2)}
+.send-btn{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--green));border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 15px rgba(26,173,160,.4);transition:.2s;flex-shrink:0}
+.send-btn:hover{transform:scale(1.08)}
+.send-btn:active{transform:scale(.94)}
+.mic-btn{width:44px;height:44px;border-radius:50%;background:var(--surf2);border:1px solid var(--bdr);color:var(--mut);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.mic-btn:hover{border-color:var(--acc);color:var(--acc)}
+.mic-btn.recording{background:rgba(224,75,74,.15);border-color:var(--red);color:var(--red);animation:pulse 1s infinite}
+.notification{position:fixed;top:16px;right:16px;background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:12px 16px;font-size:13px;z-index:999;animation:slideIn .3s ease;box-shadow:0 8px 24px rgba(0,0,0,.5);max-width:300px;display:none}
+@keyframes slideIn{from{transform:translateX(120%)}to{transform:translateX(0)}}
+@media(max-width:700px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:100;transform:translateX(0);width:100%}
+  .sidebar.hidden{transform:translateX(-100%)}
+  .chat-header .back-btn{display:flex}
+  .chat-area{position:fixed;inset:0;z-index:99;display:none}
+  .chat-area.active{display:flex}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="user-av" id="user-av">👤</div>
+      <div>
+        <div class="user-name" id="user-name">பயனர்</div>
+        <div class="user-role">பயனர் · USER</div>
+      </div>
+      <div class="sidebar-header-icons">
+        <button class="hdr-btn" onclick="location.href=window.jyotishPageUrl('index.html')" title="ஜாதகம் கணக்கிடு">🔮</button>
+        <button class="hdr-btn" onclick="location.href=window.jyotishPageUrl('ai-chat.html')" title="AI ஜோதிடர்">🤖</button>
+        <button class="hdr-btn" onclick="logout()" title="வெளியேறு">⎋</button>
+      </div>
+    </div>
+    <div class="search-box"><input type="text" id="search-input" placeholder="🔍 ஜோதிடர் தேடுங்கள்..." oninput="filterContacts()"></div>
+    <div class="section-lbl">கிடைக்கும் ஜோதிடர்கள்</div>
+    <div class="contact-list" id="contact-list"><div class="empty-state"><div>⏳</div>ஏற்றுகிறது...</div></div>
+  </div>
+
+  <!-- CHAT AREA -->
+  <div class="chat-area" id="chat-area">
+    <div class="no-chat" id="no-chat">
+      <div class="no-chat-icon">🔮</div>
+      <div style="font-size:16px;color:var(--gold)">ஜோதிஷ் Chat</div>
+      <div style="font-size:12px">ஒரு ஜோதிடரை தேர்ந்தெடுக்கவும்</div>
+    </div>
+    <!-- Chat UI injected by openChat() — no template needed, avoids onclick scope issues -->
+  </div>
+</div>
+<div class="notification" id="notif"></div>
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position:fixed;top:16px;right:16px;z-index:9999;"></div>
+<script>
+function googleTranslateElementInit(){
+  new google.translate.TranslateElement({pageLanguage:'ta',includedLanguages:'ta,en,hi',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'google_translate_element');
+}
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+<script>
+const API=window.resolveJyotishApiBase();
+const token=localStorage.getItem('auth_token');
+const me=JSON.parse(localStorage.getItem('user_data')||localStorage.getItem('user_info')||'{}');
+if(!token){location.href=window.jyotishPageUrl('login.html');}
+// Astrologer goes to astro dashboard; Admin can view user dashboard for support
+if(me.role==='Astrologer' && me.status==='Approved')location.href=window.jyotishPageUrl('astro-dashboard.html');
+
+let ws=null,peerId=null,peerName='',mediaRec=null,recChunks=[],recording=false;
+let allContacts=[],unreadMap={};
+const CACHE='jyotish_msgs_';
+let msgQueue=[]; // holds messages while WS is connecting
+
+function safeText(v){ return v === undefined || v === null ? '' : String(v); }
+function msgFingerprint(m){
+  return [safeText(m.sender_id), safeText(m.receiver_id), safeText(m.type || m.msg_type || 'text'), safeText(m.content), safeText(m.timestamp).slice(0,19)].join('|');
+}
+function getCachedMessages(id){
+  try { return JSON.parse(localStorage.getItem(CACHE + id) || '[]'); } catch(e) { return []; }
+}
+function setCachedMessages(id, arr){
+  const seen = new Set();
+  const clean = [];
+  arr.forEach(m => {
+    const fp = msgFingerprint(m || {});
+    if (!seen.has(fp)) { seen.add(fp); clean.push(m); }
+  });
+  localStorage.setItem(CACHE + id, JSON.stringify(clean.slice(-100)));
+}
+function previewMessage(m, fallback){
+  if (!m) return fallback || 'Vedic Astrologer';
+  const type = m.type || m.msg_type || 'text';
+  const content = safeText(m.content).trim();
+  if (type === 'voice') return '🎙 Voice message';
+  if (content.startsWith('[BLOCKED')) return '🚫 Blocked message';
+  return content || (fallback || 'No message yet');
+}
+
+// ── Init user avatar
+if(me.name)document.getElementById('user-name').textContent=me.name;
+const av=document.getElementById('user-av');
+if(me.picture){const i=document.createElement('img');i.src=me.picture;av.innerHTML='';av.appendChild(i);}
+
+// ── Load astrologers
+async function loadAstrologers(){
+  try{
+    const r=await fetch(`${API}/api/chat/astrologers`);
+    allContacts=await r.json();
+    renderContacts(allContacts);
+  }catch(e){
+    // Fallback to localStorage astrologers set by admin
+    const stored=JSON.parse(localStorage.getItem('astrologers')||'[]');
+    allContacts=stored.filter(a=>a.status==='Approved'||a.available!==false).map(a=>({id:a.id||a.name,name:a.name,picture:'',available:a.available!==false,specialty:a.spec||''}));
+    renderContacts(allContacts);
+  }
+}
+
+function renderContacts(list){
+  const el=document.getElementById('contact-list');
+  if(!list.length){el.innerHTML='<div class="empty-state"><div>🔮</div>ஜோதிடர்கள் இல்லை</div>';return;}
+  el.innerHTML=list.map(a=>{
+    const av=a.picture?`<img src="${a.picture}" alt="">`:(a.name?a.name[0]:'🔮');
+    const dot=a.available?'online-dot':'offline-dot';
+    const badge=a.available?'<span class="avail-badge avail-yes">✅ Available</span>':'<span class="avail-badge avail-no">⛔ Busy</span>';
+    const unread=unreadMap[a.id]?`<div class="unread-badge">${unreadMap[a.id]}</div>`:'';
+    const last=getCachedMessages(a.id).slice(-1)[0];
+    const preview=previewMessage(last,a.specialty||'Vedic Astrologer');
+    return`<div class="contact-item" id="ci-${a.id}" onclick="openChat('${a.id}','${a.name}',${a.available})">
+      <div class="contact-av">${av}<span class="${dot}"></span></div>
+      <div class="contact-info">
+        <div class="contact-name">${a.name}</div>
+        <div class="contact-preview">${escH(preview)}</div>
+      </div>
+      <div class="contact-meta">${badge}${unread}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterContacts(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  renderContacts(allContacts.filter(a=>a.name.toLowerCase().includes(q)));
+}
+
+// ── Open chat with astrologer
+function openChat(id,name,available){
+  peerId=String(id); peerName=name;
+  document.querySelectorAll('.contact-item').forEach(el=>el.classList.remove('active'));
+  const ci=document.getElementById('ci-'+id);
+  if(ci)ci.classList.add('active');
+  if(unreadMap[id]){delete unreadMap[id];renderContacts(allContacts);}
+
+  // Hide the no-chat placeholder BEFORE overwriting innerHTML
+  const noChat=document.getElementById('no-chat');
+  if(noChat)noChat.style.display='none';
+
+  // Check if user has a chart to share
+  const hasChart=!!localStorage.getItem('astro_cd');
+
+  // Activate chat-area flex layout BEFORE injecting HTML
+  const area=document.getElementById('chat-area');
+  area.classList.add('active');
+  document.getElementById('sidebar').classList.add('hidden');
+
+  // Build chat UI directly (not via <template> to avoid onclick scope issues)
+  area.innerHTML=`
+    <div class="chat-header" id="chat-header">
+      <button class="back-btn" id="back-btn">←</button>
+      <div class="chat-av" id="chat-av">🔮</div>
+      <div>
+        <div class="chat-name" id="chat-peer-name">${escH(name)}</div>
+        <div class="chat-status" id="chat-peer-status">
+          ${available
+            ?'<span class="chat-status-dot"></span> கிடைக்கிறார் · இணையத்தில் உள்ளார்'
+            :'<span style="color:var(--mut)">⛔ இப்போது கிடைக்கவில்லை</span>'}
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        ${hasChart?`<button class="hdr-btn" id="share-chart-btn" title="என் ஜாதகம் அனுப்பு" style="font-size:13px;padding:4px 10px;border:1px solid var(--teal);border-radius:8px;color:var(--teal);">📊 ஜாதகம்</button>`:''}
+        <button class="hdr-btn" id="mic-btn">🎙</button>
+      </div>
+    </div>
+    <div class="messages" id="messages">
+      <div class="typing-wrap" id="typing-wrap">
+        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+      </div>
+    </div>
+    <div class="input-area">
+      <textarea class="input-box" id="msg-input" placeholder="செய்தி தட்டச்சு செய்யுங்கள்..." rows="1"></textarea>
+      <button class="send-btn" id="send-btn" title="அனுப்பு">➤</button>
+    </div>`;
+
+  // Wire up events using addEventListener (safe after DOM is written)
+  document.getElementById('back-btn').addEventListener('click',closeChatMobile);
+  document.getElementById('send-btn').addEventListener('click',sendMsg);
+  document.getElementById('mic-btn').addEventListener('click',toggleRecord);
+  const inp=document.getElementById('msg-input');
+  inp.addEventListener('keydown',handleKey);
+  inp.addEventListener('input',function(){autoResize(this);sendTyping();});
+  if(hasChart) document.getElementById('share-chart-btn')?.addEventListener('click',shareChart);
+  inp.focus();
+
+  loadHistory();
+  connectWS();
+}
+
+function closeChatMobile(){
+  peerId=null; peerName='';
+  const area=document.getElementById('chat-area');
+  area.classList.remove('active');
+  // Restore no-chat placeholder
+  area.innerHTML='<div class="no-chat" id="no-chat"><div class="no-chat-icon">🔮</div><div style="font-size:16px;color:var(--gold)">ஜோதிஷ் Chat</div><div style="font-size:12px">ஒரு ஜோதிடரை தேர்ந்தெடுக்கவும்</div></div>';
+  document.getElementById('sidebar').classList.remove('hidden');
+  document.querySelectorAll('.contact-item').forEach(el=>el.classList.remove('active'));
+}
+
+// ── WebSocket
+function connectWS(){
+  if(ws && ws.readyState===WebSocket.CONNECTING) return; // already connecting
+  if(ws && ws.readyState===WebSocket.OPEN){ws.close();}
+  const uid=me.id||1;
+  ws=new WebSocket(API.replace(/^http/,'ws')+`/api/chat/ws/${uid}`);
+  ws.onopen=()=>{
+    // flush queued messages
+    while(msgQueue.length){
+      const payload=msgQueue.shift();
+      try{ws.send(JSON.stringify(payload));}catch(e){}
+    }
+  };
+  ws.onmessage=e=>{
+    const d=JSON.parse(e.data);
+    if(d.type==='typing'){showTyping();return;}
+    if(d.echo===true)return;
+    const isMine=String(d.sender_id)===String(me.id||1);
+    const isCurrentChat=(String(d.sender_id)===String(peerId)||String(d.receiver_id)===String(peerId));
+    if(isCurrentChat&&!isMine){
+      appendBubble(d,false);
+      cacheMsg(d);
+    } else if(!isMine){
+      unreadMap[d.sender_id]=(unreadMap[d.sender_id]||0)+1;
+      renderContacts(allContacts);
+      showNotif('💬 '+(d.sender_name||'ஜோதிடர்')+': '+safeText(d.content).slice(0,40));
+    }
+  };
+  ws.onerror=()=>showNotif('⚠ WebSocket இணைப்பு பிக்ள்');
+  ws.onclose=()=>setTimeout(connectWS,3000);
+}
+
+function sendMsg(){
+  const input=document.getElementById('msg-input');
+  if(!input){showNotif('⚠ Chat திறக்கவில்லை');return;}
+  const text=(input.value||'').trim();
+  if(!text)return;
+  if(!peerId){showNotif('⚠ ஜோதிடரை தேர்வு செய்யவும்');return;}
+  if(isBlocked(text)){showNotif('⛔ Phone / WhatsApp links அனுப்ப முடியாது!');return;}
+  // Optimistic render immediately
+  const msg={sender_id:me.id||1,receiver_id:peerId,content:text,type:'text',timestamp:new Date().toISOString()};
+  appendBubble(msg,true);
+  cacheMsg(msg);
+  input.value='';input.style.height='auto';
+  const payload={receiver_id:peerId,content:text,type:'text'};
+  if(ws && ws.readyState===WebSocket.OPEN){
+    ws.send(JSON.stringify(payload));
+  } else {
+    // Queue and connect — onopen will flush
+    msgQueue.push(payload);
+    connectWS();
+    showNotif('🔄 இணைக்கப்படுகிறது... செய்தி அனுப்பப்படும்');
+  }
+}
+
+// ── Share full jathagam chart with astrologer
+function shareChart(){
+  const raw=localStorage.getItem('astro_cd');
+  if(!raw){showNotif('⚠ ஜாதகம் இல்லை. முதலில் index.html-ல் கணக்கிடுங்கள்.');return;}
+  try{
+    const cd=JSON.parse(raw);
+    const name=cd.name||me.name||'பயனர்';
+    const lines=[
+      '📊 ══════ என் ஜாதக விவரங்கள் ══════',
+      `👤 பெயர்: ${name}`,
+      `📅 பிறந்த தேதி: ${cd.dob||''} ${cd.time||''}`,
+      `📍 ஊர்: ${cd.place||''}`,
+      `🌙 ராசி: ${cd.rasi||''} | ⬆ லக்னம்: ${cd.lagna||''} | ⭐ நட்சத்திரம்: ${cd.nakshatra||''}`,
+      cd.current_dasa?`⏳ தசை: ${cd.current_dasa} → புக்தி: ${cd.current_bhukti||''}`:'',
+      cd.planets&&cd.planets.length?'🪐 கிரக நிலைகள்:\n'+cd.planets.map(p=>`  ${p.name}: ${p.rasi} ${p.degree||''}`).join('\n'):'',
+      '══════════════════════════════',
+    ].filter(Boolean).join('\n');
+    const inp=document.getElementById('msg-input');
+    if(inp)inp.value=lines;
+    showNotif('📊 ஜாதகம் செய்தி பெட்டியில் சேர்க்கப்பட்டது. அனுப்ப ➤ அழுத்தவும்.');
+    if(inp)inp.focus();
+  }catch(e){showNotif('⚠ ஜாதக தரவு பிழை');}
+}
+
+function isBlocked(t){
+  return /wa\.me|whatsapp|api\.whatsapp/i.test(t)||
+    /instagram\.com|t\.me|tiktok/i.test(t)||
+    (t.replace(/\D/g,'').length>9);
+}
+
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';}
+
+let typTimer;
+function sendTyping(){
+  if(!ws||ws.readyState!==1)return;
+  ws.send(JSON.stringify({receiver_id:peerId,type:'typing',content:''}));
+}
+function showTyping(){
+  const tw=document.getElementById('typing-wrap');
+  if(!tw)return;
+  tw.style.display='flex';
+  clearTimeout(typTimer);
+  typTimer=setTimeout(()=>tw.style.display='none',2500);
+}
+
+// ── Voice recording
+async function toggleRecord(){
+  const btn=document.getElementById('mic-btn');
+  if(!recording){
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRec=new MediaRecorder(stream);recChunks=[];
+      mediaRec.ondataavailable=e=>recChunks.push(e.data);
+      mediaRec.onstop=sendVoice;
+      mediaRec.start();recording=true;
+      btn.classList.add('recording');btn.textContent='⏹';
+      showNotif('🔴 Recording...');
+    }catch(e){showNotif('🎙 Microphone access needed');}
+  } else {
+    mediaRec.stop();recording=false;
+    btn.classList.remove('recording');btn.textContent='🎙';
+  }
+}
+
+function sendVoice(){
+  const blob=new Blob(recChunks,{type:'audio/webm'});
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const b64=reader.result;
+    if(!ws)return;
+    const payload={receiver_id:peerId,content:b64,type:'voice'};
+    ws.send(JSON.stringify(payload));
+    const msg={sender_id:me.id||1,receiver_id:peerId,content:b64,type:'voice',timestamp:new Date().toISOString()};
+    appendBubble(msg,true);
+    cacheMsg(msg);
+  };
+  reader.readAsDataURL(blob);
+}
+
+// ── Render bubble
+function appendBubble(msg,isSent){
+  const el=document.getElementById('messages');
+  if(!el)return;
+  const tw=document.getElementById('typing-wrap');
+  const div=document.createElement('div');
+  div.className='bubble '+(isSent?'sent':'recv');
+  const time=new Date(msg.timestamp).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  if(msg.type==='voice'&&msg.content.startsWith('data:audio')){
+    div.innerHTML=`<div class="voice-bubble"><button class="voice-play" onclick="playVoice(this,'${msg.content}')">▶</button><div class="voice-wave"></div><span class="voice-dur">🎙 Voice</span></div><div class="bubble-time">${time}${isSent?' <span class="tick read">✓✓</span>':''}</div>`;
+  } else if(msg.content.startsWith('[BLOCKED')){
+    div.innerHTML=`<div class="blocked-msg">${msg.content}</div><div class="bubble-time">${time}</div>`;
+  } else {
+    div.innerHTML=`<div>${escH(msg.content)}</div><div class="bubble-time">${time}${isSent?' <span class="tick read">✓✓</span>':''}</div>`;
+  }
+  el.insertBefore(div,tw||null);
+  el.scrollTop=el.scrollHeight;
+}
+
+function escH(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function playVoice(btn,src){
+  const a=new Audio(src);a.play();btn.textContent='▶';
+}
+
+// ── Load history
+async function loadHistory(){
+  // Try cache first
+  const cached=getCachedMessages(peerId);
+  cached.forEach(m=>appendBubble(m,m.sender_id==(me.id||1)));
+  // Then API
+  try{
+    const r=await fetch(`${API}/api/chat/history/${peerId}?token=${token}`);
+    if(r.ok){
+      const msgs=await r.json();
+      if(msgs.length){
+        const el=document.getElementById('messages');
+        const tw=document.getElementById('typing-wrap');
+        // Clear cached renders
+        while(el.firstChild&&el.firstChild!==tw)el.removeChild(el.firstChild);
+        msgs.forEach(m=>appendBubble(m,m.sender_id==(me.id||1)));
+        setCachedMessages(peerId,msgs);
+      }
+    }
+  }catch(e){}
+}
+
+function cacheMsg(msg){
+  const arr=getCachedMessages(peerId);
+  arr.push(msg);
+  setCachedMessages(peerId,arr);
+  if (allContacts.length) renderContacts(allContacts);
+}
+
+function showNotif(text){
+  const el=document.getElementById('notif');
+  el.textContent=text;el.style.display='block';
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.style.display='none',3500);
+}
+
+function logout(){
+  localStorage.removeItem('auth_token');
+  localStorage.removeItem('user_data');
+  localStorage.removeItem('user_info');
+  location.href=window.jyotishPageUrl('login.html');
+}
+
+// ── Init
+loadAstrologers();
+setInterval(loadAstrologers,30000); // refresh available status
+</script>
+</body>
+</html>

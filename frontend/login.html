@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login — JYOTISH Astrology 3.0</title>
+<meta name="description" content="Sign in to Jyotish Astrology 3.0 — Tamil Vedic Astrology Platform">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+Tamil:wght@300;400;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+
+<style>
+/* ─── Reset & Variables ─── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#C8A84B; --gold2:#F0D878; --deep:#06040D; --mid:#0E0B1E;
+  --surf:#13102B; --card:rgba(12,9,26,0.98); --tx:#EDE8FF; --tx2:#A89EC0;
+  --mut:#5A5278; --bdr:rgba(200,168,75,.18); --bdr2:rgba(80,70,130,.55);
+  --acc:#7C5FCC; --teal:#1AADA0; --red:#E04B4A;
+}
+html,body{height:100%;font-family:'Noto Sans Tamil',sans-serif}
+body{
+  background:var(--deep);color:var(--tx);min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;position:relative;overflow:hidden
+}
+
+/* ─── Stars ─── */
+.star{position:fixed;border-radius:50%;pointer-events:none;animation:tw 3s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.06}50%{opacity:.85}}
+
+/* ─── Orbs ─── */
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;animation:drift 12s ease-in-out infinite}
+.o1{width:520px;height:520px;background:rgba(124,95,204,.09);top:-180px;right:-130px}
+.o2{width:420px;height:420px;background:rgba(200,168,75,.07);bottom:-140px;left:-100px;animation-delay:5s}
+.o3{width:280px;height:280px;background:rgba(26,173,160,.05);top:45%;left:45%;animation-delay:2s;animation-duration:16s}
+@keyframes drift{0%,100%{transform:translate(0,0)}40%{transform:translate(25px,-18px)}70%{transform:translate(-15px,12px)}}
+
+/* ─── Grid ─── */
+.grid{position:fixed;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(200,168,75,.022) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(200,168,75,.022) 1px,transparent 1px);
+  background-size:60px 60px}
+
+/* ─── Card ─── */
+.card{
+  position:relative;z-index:10;background:var(--card);
+  border:1px solid var(--bdr);border-radius:28px;
+  padding:42px 36px 34px;width:100%;max-width:450px;text-align:center;
+  backdrop-filter:blur(30px);
+  box-shadow:0 40px 100px rgba(0,0,0,.85),0 0 0 1px rgba(200,168,75,.05) inset,0 1px 0 rgba(200,168,75,.22) inset;
+  animation:cardIn .65s cubic-bezier(.16,1,.3,1) both
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(36px) scale(.97)}to{opacity:1;transform:none}}
+.card::before{
+  content:'';position:absolute;top:0;left:15%;right:15%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);border-radius:50%
+}
+
+/* ─── Logo ─── */
+.logo-ring{
+  width:78px;height:78px;border-radius:50%;margin:0 auto 14px;
+  background:radial-gradient(circle at 35% 35%,rgba(200,168,75,.22),rgba(124,95,204,.08));
+  border:1px solid rgba(200,168,75,.28);
+  display:flex;align-items:center;justify-content:center;font-size:36px;
+  box-shadow:0 0 40px rgba(200,168,75,.14);animation:pulse-ring 3s ease-in-out infinite
+}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 20px rgba(200,168,75,.12)}50%{box-shadow:0 0 50px rgba(200,168,75,.28)}}
+.logo-title{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;letter-spacing:6px;color:var(--gold);text-shadow:0 0 40px rgba(200,168,75,.35);line-height:1;margin-bottom:3px}
+.logo-sub{font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:5px;color:var(--mut);margin-bottom:5px}
+.zodiac{font-size:13px;letter-spacing:7px;color:var(--gold);opacity:.12;margin-bottom:26px;animation:zshift 18s linear infinite alternate}
+@keyframes zshift{from{opacity:.08;letter-spacing:5px}to{opacity:.18;letter-spacing:9px}}
+
+/* ─── Role Tabs ─── */
+.role-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.role-tab{
+  padding:13px 8px;border:1px solid var(--bdr2);border-radius:14px;
+  cursor:pointer;transition:all .22s;font-size:12px;font-weight:600;
+  background:rgba(255,255,255,.02);color:var(--tx2);
+  font-family:'Noto Sans Tamil',sans-serif;line-height:1.45
+}
+.role-tab .ri{font-size:24px;display:block;margin-bottom:5px}
+.role-tab:hover{border-color:rgba(200,168,75,.32);background:rgba(200,168,75,.04);color:var(--tx);transform:translateY(-1px)}
+.role-tab.act{background:linear-gradient(135deg,rgba(200,168,75,.11),rgba(124,95,204,.11));border-color:var(--gold);color:var(--gold2);box-shadow:0 0 18px rgba(200,168,75,.07)}
+
+/* ─── Info Box ─── */
+.info-box{
+  background:rgba(26,173,160,.06);border:1px solid rgba(26,173,160,.18);
+  border-radius:12px;padding:11px 15px;font-size:11.5px;color:var(--teal);
+  line-height:1.85;margin-bottom:20px;text-align:left;transition:all .3s
+}
+
+/* ─── Divider ─── */
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--mut);font-size:10px;font-family:'Space Mono',monospace;letter-spacing:2px;text-transform:uppercase}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--bdr2),transparent)}
+
+/* ─── Google Button Area ─── */
+.google-area{
+  background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;padding:16px;margin-bottom:12px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  min-height:76px;justify-content:center;transition:border-color .3s
+}
+.google-area:hover{border-color:rgba(255,255,255,.16)}
+
+/* GIS button container */
+#g-btn-wrap{display:flex;justify-content:center;width:100%}
+
+/* Manual Google button fallback */
+.g-manual{
+  width:100%;padding:13px 20px;border:1px solid rgba(255,255,255,.16);
+  border-radius:14px;background:rgba(255,255,255,.05);color:var(--tx);
+  font-size:13.5px;font-weight:600;cursor:pointer;
+  display:none;align-items:center;justify-content:center;gap:11px;
+  transition:all .22s;font-family:'Noto Sans Tamil',sans-serif
+}
+.g-manual:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.32);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.g-manual:active{transform:none}
+.g-manual .glogo{width:21px;height:21px;background:#fff;border-radius:50%;padding:2px;flex-shrink:0}
+.g-manual:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+/* ─── Mobile Google hint ─── */
+.mobile-hint{font-size:11px;color:var(--mut);text-align:center;padding:6px 0;line-height:1.6}
+
+/* ─── Loading ─── */
+.loading{display:none;align-items:center;justify-content:center;gap:9px;padding:14px;color:var(--gold2);font-size:12.5px}
+.loading.on{display:flex}
+.spin{width:18px;height:18px;border:2px solid rgba(200,168,75,.18);border-top-color:var(--gold);border-radius:50%;animation:spin .75s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── Error ─── */
+.err-box{
+  background:rgba(224,75,74,.07);border:1px solid rgba(224,75,74,.22);
+  border-radius:10px;padding:10px 14px;font-size:11.5px;color:var(--red);
+  margin-top:10px;display:none;text-align:left;line-height:1.7;
+  animation:fadeIn .2s
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1}}
+
+/* ─── Footer ─── */
+.foot{margin-top:20px;font-size:10px;color:var(--mut);line-height:1.9;font-family:'Space Mono',monospace}
+.foot .hl{color:var(--teal)}
+</style>
+
+<!-- ══════════════════════════════════════════
+     ALL JS MUST BE DEFINED BEFORE GIS LOADS
+     so window.onGoogleLibraryLoad is set in time
+     ══════════════════════════════════════════ -->
+<script src="api-base.js"></script>
+<script>
+// ─── CONFIG ──────────────────────────────────────────
+const GOOGLE_CLIENT_ID = '1055510399803-bv8vphrhlam8cn5uljii5cs8ghubcuvl.apps.googleusercontent.com';
+const API = window.resolveJyotishApiBase();
+
+// ─── STATE ───────────────────────────────────────────
+let selectedRole = 'User';
+let gisReady     = false;
+
+// ─── ROLE SELECTION ──────────────────────────────────
+function selectRole(role) {
+  selectedRole = role;
+  document.getElementById('tab-user').classList.toggle('act', role === 'User');
+  document.getElementById('tab-astro').classList.toggle('act', role === 'Astrologer');
+  document.getElementById('role-info').innerHTML = role === 'Astrologer'
+    ? '🔮 <strong>ஜோதிடர்:</strong> Login பிறகு Admin ஒப்புதல் கிடைக்கும் வரை காத்திருக்க வேண்டும்.'
+    : '👤 <strong>User:</strong> ஜாதகம் கணக்கிட்டு ஜோதிடர்களிடம் chat செய்யலாம்.';
+}
+
+// ─── ROUTING ─────────────────────────────────────────
+function redirectByRole(user) {
+  localStorage.setItem('user_data', JSON.stringify(user));
+  localStorage.setItem('user_info', JSON.stringify(user));
+  if (user.role === 'Admin')      { window.location.href = window.jyotishPageUrl('admin.html'); return; }
+  if (user.role === 'Astrologer') {
+    window.location.href = window.jyotishPageUrl(user.status === 'Approved' ? 'astro-dashboard.html' : 'pending.html');
+    return;
+  }
+  window.location.href = window.jyotishPageUrl('user-dashboard.html');
+}
+
+// ─── UI HELPERS ──────────────────────────────────────
+function setLoading(on) {
+  const ld = document.getElementById('loading');
+  if (ld) ld.classList.toggle('on', on);
+  const gm = document.getElementById('g-manual');
+  if (gm) gm.disabled = on;
+  if (on) hideErr();
+}
+
+function showErr(msg) {
+  const el = document.getElementById('err-box');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 8000);
+}
+
+function hideErr() {
+  const el = document.getElementById('err-box');
+  if (el) el.style.display = 'none';
+}
+
+// ─── GIS INIT — REGISTERED BEFORE SCRIPT LOADS ──────
+function initGIS() {
+  try {
+    google.accounts.id.initialize({
+      client_id:            GOOGLE_CLIENT_ID,
+      callback:             handleGoogleCallback,
+      auto_select:          false,
+      cancel_on_tap_outside: true
+    });
+    gisReady = true;
+    renderGoogleButton();
+  } catch(e) {
+    console.warn('GIS init error:', e);
+    showManualBtn();
+  }
+}
+
+// ✅ Set callback BEFORE the GIS script loads
+window.onGoogleLibraryLoad = initGIS;
+
+function renderGoogleButton() {
+  const wrap = document.getElementById('g-btn-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  try {
+    google.accounts.id.renderButton(wrap, {
+      theme:  'filled_black',
+      size:   'large',
+      text:   'signin_with',
+      shape:  'pill',
+      width:  340,
+      locale: 'ta'
+    });
+  } catch(e) {
+    showManualBtn();
+  }
+}
+
+function showManualBtn() {
+  const wrap = document.getElementById('g-btn-wrap');
+  if (wrap) wrap.style.display = 'none';
+  const btn = document.getElementById('g-manual');
+  if (btn) btn.style.display = 'flex';
+}
+
+// Detect mobile browser
+function isMobile() {
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
+function triggerGoogleLogin() {
+  if (isMobile()) {
+    // On mobile: redirect-based OAuth with id_token implicit flow
+    const nonce = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    sessionStorage.setItem('login_role', selectedRole);
+    sessionStorage.setItem('oauth_nonce', nonce);
+    
+    // The redirect URI must EXACTLY match the Authorized redirect URIs in Google Cloud Console
+    // Usually it's your full domain + path (e.g., https://yourdomain.com/login.html)
+    // We clean up any trailing slashes just in case.
+    let redirectUri = window.location.origin + window.location.pathname.replace(/\/+$/, '');
+    
+    const params = new URLSearchParams({
+      client_id:     GOOGLE_CLIENT_ID,
+      redirect_uri:  redirectUri,
+      response_type: 'id_token',
+      scope:         'openid email profile',
+      nonce:         nonce,
+      state:         selectedRole,
+      prompt:        'select_account'
+    });
+    window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+    return;
+  }
+  if (gisReady) {
+    try { google.accounts.id.prompt(); } catch(e) { showErr('Google popup blocked. Please try again.'); }
+  } else {
+    showErr('Google Sign-In ஏற்றவில்லை. சிறிது நேரம் கழித்து முயற்சிக்கவும்.');
+  }
+}
+
+// ─── GOOGLE CALLBACK ─────────────────────────────────
+async function handleGoogleCallback(response) {
+  setLoading(true);
+  try {
+    const res = await fetch(API + '/api/auth/google', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ token: response.credential, role_requested: selectedRole })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Google login failed');
+    localStorage.setItem('auth_token', data.access_token);
+    redirectByRole(data.user);
+  } catch(e) {
+    showErr('❌ Login தோல்வி: ' + e.message);
+    setLoading(false);
+  }
+}
+
+// ─── HANDLE MOBILE OAUTH REDIRECT CALLBACK ───────────
+// Google returns id_token in URL hash after redirect on mobile
+async function handleOAuthRedirectCallback() {
+  const hash = window.location.hash.substring(1);
+  if (!hash) return false;
+  const params = new URLSearchParams(hash);
+  const idToken = params.get('id_token');
+  if (!idToken) return false;
+
+  // Clean the hash from URL so refresh/back-button doesn't re-trigger
+  history.replaceState(null, '', window.location.pathname);
+
+  const role = sessionStorage.getItem('login_role') || 'User';
+  sessionStorage.removeItem('login_role');
+  sessionStorage.removeItem('oauth_nonce');
+
+  setLoading(true);
+  try {
+    const res = await fetch(API + '/api/auth/google', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ token: idToken, role_requested: role })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Google login failed');
+    localStorage.setItem('auth_token', data.access_token);
+    redirectByRole(data.user);
+  } catch(e) {
+    setLoading(false);
+    showErr('❌ Mobile Login தோல்வி: ' + e.message);
+  }
+  return true;
+}
+
+// ─── AUTO-REDIRECT IF ALREADY LOGGED IN ──────────────
+// Runs after DOM is ready
+document.addEventListener('DOMContentLoaded', async function() {
+  // Step 1: Check for mobile OAuth redirect (id_token in URL hash)
+  const wasRedirect = await handleOAuthRedirectCallback();
+  if (wasRedirect) return; // login in progress
+
+  // Step 2: Already logged in?
+  const token = localStorage.getItem('auth_token');
+  const ud    = localStorage.getItem('user_data');
+  if (token && ud) {
+    try { redirectByRole(JSON.parse(ud)); return; } catch(e) {}
+  }
+  // Stars
+  const body = document.body;
+  for (let i = 0; i < 110; i++) {
+    const s   = document.createElement('div');
+    s.className = 'star';
+    const sz  = Math.random() * 1.7 + 0.3;
+    const gold = Math.random() > 0.87;
+    s.style.cssText = `width:${sz}px;height:${sz}px;background:${gold?'#C8A84B':'#fff'};`
+      + `left:${Math.random()*100}%;top:${Math.random()*100}%;`
+      + `animation-delay:${Math.random()*5}s;animation-duration:${2+Math.random()*4}s;opacity:${Math.random()*.4};`;
+    body.insertBefore(s, body.firstChild);
+  }
+  // GIS fallback: if onGoogleLibraryLoad never fired after 4s
+  setTimeout(() => {
+    if (!gisReady) {
+      if (typeof google !== 'undefined' && google.accounts) { initGIS(); }
+      else { showManualBtn(); }
+    }
+  }, 4000);
+
+  // Mobile: show hint and force manual button (GIS popup doesn't work on mobile)
+  if (isMobile()) {
+    showManualBtn();
+    const hint = document.getElementById('mobile-hint');
+    if (hint) hint.style.display = 'block';
+  }
+});
+</script>
+
+<!-- GIS script loads AFTER onGoogleLibraryLoad is defined above -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+</head>
+<body>
+
+<!-- Background -->
+<div class="o1 orb"></div>
+<div class="o2 orb"></div>
+<div class="o3 orb"></div>
+<div class="grid"></div>
+
+<!-- ── LOGIN CARD ── -->
+<div class="card" id="login-card">
+
+  <!-- Logo -->
+  <div class="logo-ring">✦</div>
+  <div class="logo-title">JYOTISH</div>
+  <div class="logo-sub">ASTROLOGY SYSTEM 3.0</div>
+  <div class="zodiac">♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓</div>
+
+  <!-- Role Selection -->
+  <div class="role-tabs">
+    <button class="role-tab act" id="tab-user" onclick="selectRole('User')">
+      <span class="ri">👤</span>பயனர் / User
+    </button>
+    <button class="role-tab" id="tab-astro" onclick="selectRole('Astrologer')">
+      <span class="ri">🔮</span>ஜோதிடர்
+    </button>
+  </div>
+
+  <!-- Role Info -->
+  <div class="info-box" id="role-info">
+    👤 <strong>User:</strong> ஜாதகம் கணக்கிட்டு ஜோதிடர்களிடம் chat செய்யலாம்.
+  </div>
+
+  <!-- Google Sign-In -->
+  <div class="divider">Google மூலம் உள்நுழையவும்</div>
+
+  <div class="google-area">
+    <!-- GIS renders button here -->
+    <div id="g-btn-wrap"></div>
+    <!-- Fallback / Mobile button -->
+    <button class="g-manual" id="g-manual" onclick="triggerGoogleLogin()">
+      <img class="glogo" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+      Google மூலம் Login செய்யவும்
+    </button>
+    <!-- Mobile hint -->
+    <div class="mobile-hint" id="mobile-hint" style="display:none;">📱 Mobile users: Google பக்கத்திற்கு அழைத்துச் செல்லப்படுவீர்கள்.</div>
+  </div>
+
+  <!-- Loading indicator -->
+  <div class="loading" id="loading">
+    <div class="spin"></div>உள்நுழைகிறது, காத்திருங்கள்...
+  </div>
+
+  <!-- Error box -->
+  <div class="err-box" id="err-box"></div>
+
+  <!-- Footer -->
+  <div class="foot">
+    🛡 Admin Access: devanand.s2008@gmail.com மட்டும் · JWT Secured<br>
+    🔒 Chat-ல் Phone / WhatsApp share blocked
+  </div>
+
+</div><!-- /card -->
+
+<!-- Google Translate Widget -->
+<div id="google_translate_element" style="position:fixed;top:16px;right:16px;z-index:9999;"></div>
+<script>function googleTranslateElementInit(){new google.translate.TranslateElement({pageLanguage:'ta',includedLanguages:'ta,en,hi',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'google_translate_element');}</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>
