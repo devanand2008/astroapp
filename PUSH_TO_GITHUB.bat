@@ -1,143 +1,112 @@
 @echo off
-title JYOTISH 3.0 - GitHub Setup Script
+setlocal EnableDelayedExpansion
+title JYOTISH 3.0 - GitHub Push
 color 0B
+
+set "ROOT=%~dp0"
+if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
+
 echo.
 echo  ================================================
-echo   JYOTISH 3.0 - GitHub Push Setup
+echo   JYOTISH 3.0 - GitHub Push
 echo  ================================================
 echo.
 
-:: ── STEP 1: Check if Git is installed ──────────────
 where git >nul 2>&1
-if %ERRORLEVEL% == 0 (
-    echo [OK] Git is already installed.
-    git --version
-    goto :setup_repo
-)
-
-echo [!] Git is not installed. Downloading now...
-echo.
-
-:: Download Git installer
-set GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.45.2.windows.1/Git-2.45.2-64-bit.exe
-set GIT_INSTALLER=%TEMP%\GitInstaller.exe
-
-echo Downloading Git for Windows (this may take a minute)...
-powershell -Command "Invoke-WebRequest -Uri '%GIT_URL%' -OutFile '%GIT_INSTALLER%' -UseBasicParsing"
-
-if not exist "%GIT_INSTALLER%" (
-    echo [ERROR] Download failed. Please install Git manually from:
-    echo         https://git-scm.com/download/win
+if errorlevel 1 (
+    echo [ERROR] Git is not installed or not in PATH.
+    echo         Install Git from https://git-scm.com/download/win
     pause
     exit /b 1
 )
 
-echo Installing Git silently...
-"%GIT_INSTALLER%" /VERYSILENT /NORESTART /NOCANCEL /SP- /CLOSEAPPLICATIONS /RESTARTAPPLICATIONS /COMPONENTS="icons,ext\reg\shellhere,assoc,assoc_sh"
+cd /d "%ROOT%"
 
-:: Refresh PATH
-set "PATH=%PATH%;C:\Program Files\Git\bin;C:\Program Files\Git\cmd"
-
-echo [OK] Git installed successfully!
-echo.
-
-:setup_repo
-:: ── STEP 2: Configure Git identity ─────────────────
-echo  Configuring Git identity...
 git config --global user.email "devanand2008@gmail.com"
 git config --global user.name "Devanand"
 git config --global init.defaultBranch main
-echo [OK] Git identity configured.
-echo.
 
-:: ── STEP 3: Initialize repo ─────────────────────────
-cd /d "e:\astro app 3.0 web"
-
-if exist ".git" (
-    echo [OK] Git repo already initialized.
-) else (
+if not exist ".git" (
     git init
-    echo [OK] Git repository initialized.
+    git branch -M main
 )
-echo.
 
-:: ── STEP 4: Stage all files ─────────────────────────
-echo  Staging files...
+echo [1/5] Staging files...
 git add .
-echo [OK] Files staged.
-echo.
+if exist "backend\astro_seed.db" git add -f "backend\astro_seed.db"
 
-:: ── STEP 5: Show what will be committed ─────────────
-echo  Files ready to commit:
-echo  ──────────────────────────────────────────────
+echo.
+echo [2/5] Files ready:
 git status --short
-echo  ──────────────────────────────────────────────
-echo.
 
-:: ── STEP 6: Ask for repo URL ─────────────────────────
-echo  ┌─────────────────────────────────────────────────────┐
-echo  │  ACTION REQUIRED                                    │
-echo  │                                                     │
-echo  │  1. Sign in to GitHub:  https://github.com/login   │
-echo  │     Email: devanand2008@gmail.com                   │
-echo  │                                                     │
-echo  │  2. Create a NEW repository:  https://github.com/new│
-echo  │     - Name: jyotish-app                             │
-echo  │     - Visibility: Public                            │
-echo  │     - Do NOT add README or .gitignore               │
-echo  │     - Click "Create repository"                     │
-echo  │                                                     │
-echo  │  3. Copy the repo URL (looks like):                 │
-echo  │     https://github.com/YOUR-USERNAME/jyotish-app   │
-echo  └─────────────────────────────────────────────────────┘
 echo.
-set /p REPO_URL="  Paste your GitHub repo URL here and press Enter: "
+set /p COMMIT_MSG="Commit message [Deploy Jyotish app to Render]: "
+if "%COMMIT_MSG%"=="" set "COMMIT_MSG=Deploy Jyotish app to Render"
+
+git diff --cached --quiet
+if errorlevel 1 (
+    echo.
+    echo [3/5] Creating commit...
+    git commit -m "%COMMIT_MSG%"
+) else (
+    echo.
+    echo [3/5] Nothing new to commit.
+)
+
 echo.
+echo [4/5] GitHub repository URL
+echo.
+echo First create the repository in GitHub if it does not exist:
+echo https://github.com/new
+echo.
+echo Repository name: jyotish-app
+echo Account: devanand2008
+echo Do not add README, gitignore, or license on GitHub.
+echo.
+set /p REPO_URL="Paste repo URL, for example https://github.com/devanand2008/jyotish-app.git : "
 
 if "%REPO_URL%"=="" (
-    echo [ERROR] No URL provided. Exiting.
+    echo [ERROR] No URL provided.
     pause
     exit /b 1
 )
 
-:: ── STEP 7: Connect and push ────────────────────────
+rem Normalize a common paste mistake: remove a trailing slash.
+if "%REPO_URL:~-1%"=="/" set "REPO_URL=%REPO_URL:~0,-1%"
+
 git remote remove origin 2>nul
-git remote add origin "%REPO_URL%.git" 2>nul || git remote add origin "%REPO_URL%"
-
-git commit -m "JYOTISH 3.0 - Initial commit: Tamil Vedic Astrology Platform"
+git remote add origin "%REPO_URL%"
+git branch -M main
 
 echo.
-echo  Pushing to GitHub... (Browser may open for authentication)
+echo Current remote:
+git remote -v
+
 echo.
+echo [5/5] Pushing to GitHub...
+echo Complete browser authentication if Git asks.
 git push -u origin main
 
-if %ERRORLEVEL% == 0 (
+if errorlevel 1 (
     echo.
-    echo  ================================================
-    echo   SUCCESS! Your app is now on GitHub!
-    echo  ================================================
+    echo [ERROR] Push failed.
     echo.
-    echo  Your repo: %REPO_URL%
+    echo Fix checklist:
+    echo 1. Open https://github.com/devanand2008/jyotish-app
+    echo 2. If it says 404, create it at https://github.com/new
+    echo 3. Make sure you are signed in as devanand2008 or an account with access.
+    echo 4. Run this file again and paste the repo URL once.
     echo.
-    echo  NEXT STEP: Enable GitHub Pages
-    echo   1. Go to your repo on GitHub
-    echo   2. Click Settings tab
-    echo   3. Click Pages in left sidebar
-    echo   4. Source: main branch, / (root) folder
-    echo   5. Click Save
-    echo.
-    echo  Your live site will be at:
-    echo   https://YOUR-USERNAME.github.io/jyotish-app/
-    echo.
-    start "" "%REPO_URL%/settings/pages"
-) else (
-    echo.
-    echo  [ERROR] Push failed. Common fixes:
-    echo   - Make sure you created the repo on GitHub first
-    echo   - Sign in to GitHub in the browser that opens
-    echo   - If asked for password, use a Personal Access Token
-    echo     Get one at: https://github.com/settings/tokens
+    pause
+    exit /b 1
 )
 
 echo.
+echo  ================================================
+echo   SUCCESS - Code pushed to GitHub
+echo  ================================================
+echo.
+echo  Repo: %REPO_URL%
+echo.
+start "" "%REPO_URL%"
 pause

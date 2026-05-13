@@ -69,8 +69,9 @@ git remote -v
 echo.
 set /p REPO_URL="Paste GitHub repo URL, or press Enter to keep current origin: "
 if not "%REPO_URL%"=="" (
+  if "%REPO_URL:~-1%"=="/" set "REPO_URL=%REPO_URL:~0,-1%"
   git remote remove origin 2>nul
-  git remote add origin "%REPO_URL%.git" 2>nul || git remote add origin "%REPO_URL%"
+  git remote add origin "%REPO_URL%"
 )
 
 echo.
