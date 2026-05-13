@@ -2931,11 +2931,12 @@
     onmouseover="this.style.color='rgba(200,168,75,0.7)'" onmouseout="this.style.color='rgba(100,90,140,0.35)'"
   >admin</div>
   <script>
-  // Show admin trigger ONLY for Admin role users
+  // Show admin trigger only for the designated admin account
   (function(){
     try {
+      var ADMIN_EMAIL = 'devanand.s2008@gmail.com';
       var ud = JSON.parse(localStorage.getItem('user_info') || '{}');
-      if (ud.role === 'Admin') {
+      if (ud.role === 'Admin' && String(ud.email || '').toLowerCase() === ADMIN_EMAIL) {
         document.getElementById('admin-hidden-trigger').style.display = 'block';
       }
     } catch(e) {}
@@ -3895,8 +3896,9 @@ Write a detailed Tamil horoscope reading (6-8 sentences) covering personality, c
     function isAdminUser() {
       try {
         // user_info holds single auth object; user_data may be array of horoscope records
+        var ADMIN_EMAIL = 'devanand.s2008@gmail.com';
         var ud = JSON.parse(localStorage.getItem('user_info') || '{}');
-        return ud.role === 'Admin';
+        return ud.role === 'Admin' && String(ud.email || '').toLowerCase() === ADMIN_EMAIL;
       } catch(e) { return false; }
     }
 
@@ -4905,8 +4907,9 @@ Write a detailed Tamil horoscope reading (6-8 sentences) covering personality, c
       var ud;
       try { ud = JSON.parse(localStorage.getItem('user_info') || '{}'); } catch(e) { ud = {}; }
       document.querySelectorAll('.bnav').forEach(function(nav) {
-        // Admin button — only for Admin role
-        if (ud.role === 'Admin' && !nav.querySelector('.ni-admin')) {
+        var ADMIN_EMAIL = 'devanand.s2008@gmail.com';
+        // Admin button — only for the designated admin account
+        if (ud.role === 'Admin' && String(ud.email || '').toLowerCase() === ADMIN_EMAIL && !nav.querySelector('.ni-admin')) {
           var ab = document.createElement('div');
           ab.className = 'ni ni-admin';
           ab.innerHTML = '<span class="ic">⚙</span>Admin';

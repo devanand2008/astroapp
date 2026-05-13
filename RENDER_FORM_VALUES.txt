@@ -8,7 +8,7 @@ This creates both services:
 2. jyotish-video-signaling
 
 GitHub account / owner:
-Use the GitHub account connected to Render for devanand2008@gmail.com.
+Use the GitHub account connected to Render for devanand.s2008@gmail.com.
 
 Blueprint page:
 Repository: your jyotish app GitHub repository
@@ -30,7 +30,7 @@ Health Check Path: /health
 Main service environment variables:
 SECRET_KEY: click Generate or paste a long random secret
 GOOGLE_CLIENT_ID: 1055510399803-bv8vphrhlam8cn5uljii5cs8ghubcuvl.apps.googleusercontent.com
-ADMIN_EMAIL: devanand2008@gmail.com
+ADMIN_EMAIL: devanand.s2008@gmail.com
 ALLOWED_ORIGINS: *
 PYTHON_VERSION: 3.11.0
 

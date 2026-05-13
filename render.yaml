@@ -11,7 +11,7 @@ services:
       - key: GOOGLE_CLIENT_ID
         value: 1055510399803-bv8vphrhlam8cn5uljii5cs8ghubcuvl.apps.googleusercontent.com
       - key: ADMIN_EMAIL
-        value: devanand2008@gmail.com
+        value: devanand.s2008@gmail.com
       - key: ALLOWED_ORIGINS
         value: "*"
       - key: PYTHON_VERSION

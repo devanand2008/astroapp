@@ -33,7 +33,7 @@ This stages the app, copies `backend\astro.db` to `backend\astro_seed.db` for fi
 Best option:
 
 1. Open `https://dashboard.render.com/`
-2. Login using the account connected to `devanand2008@gmail.com`
+2. Login using the account connected to `devanand.s2008@gmail.com`
 3. Click `New +`
 4. Click `Blueprint`
 5. Connect the GitHub repository
@@ -47,6 +47,37 @@ Render creates:
 jyotish-astro-app
 jyotish-video-signaling
 ```
+
+## 3A. Change Admin Email On An Existing Render Website
+
+For the already deployed website, update both the code and the Render environment variable:
+
+1. Push this code change to GitHub.
+2. Open `https://dashboard.render.com/`.
+3. Open the `jyotish-astro-app` web service.
+4. Click `Environment` in the left menu.
+5. Find `ADMIN_EMAIL`.
+6. Change its value to:
+
+```text
+devanand.s2008@gmail.com
+```
+
+7. Save using `Save, rebuild, and deploy` or `Save and deploy`.
+8. If Render does not deploy automatically, open `Manual Deploy` and click `Deploy latest commit`.
+9. After deploy completes, open:
+
+```text
+https://jyotish-astro-app.onrender.com/login.html
+```
+
+10. Logout from any old account, then login with Google using:
+
+```text
+devanand.s2008@gmail.com
+```
+
+Only this Gmail account should now open `admin.html` and use `/api/admin` routes.
 
 If you create the Python service manually, use these exact values:
 
@@ -182,7 +213,7 @@ https://jyotish-astro-app.onrender.com/login.html
 Use Google login with:
 
 ```text
-devanand2008@gmail.com
+devanand.s2008@gmail.com
 ```
 
 That account becomes Admin automatically.

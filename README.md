@@ -39,7 +39,7 @@ JYOTISH 3.0 is a production-ready **Tamil Vedic Astrology web application** that
   |------|--------|
   | **User** | View horoscope, chat with astrologers, AI readings |
   | **Astrologer** | Accept consultations, set availability, chat with users |
-  | **Admin** | Full platform control (reserved for `devanand2008@gmail.com`) |
+  | **Admin** | Full platform control (reserved for `devanand.s2008@gmail.com`) |
 - **JWT Authentication** (7-day tokens) via `python-jose`
 - **Astrologer Approval Flow** — New astrologers await admin approval before going live
 - **Pending Page** — Astrologers see their approval status in real time
@@ -221,7 +221,7 @@ set OLLAMA_MODEL=llama3
 Without any API key, the app uses a built-in smart Tamil rule-based system.
 
 ### Admin Account
-The admin email is locked to: `devanand2008@gmail.com`  
+The admin email is locked to: `devanand.s2008@gmail.com`  
 This account automatically gets Admin role and full access upon sign-in.
 
 ---
@@ -266,7 +266,7 @@ Login (Google OAuth)
 Built with ❤️ for Tamil astrology — traditional wisdom, modern technology.
 
 **Developer:** Devanand S  
-**Contact:** devanand2008@gmail.com
+**Contact:** devanand.s2008@gmail.com
 
 ---
 
@@ -321,7 +321,7 @@ If your Render service URL is different, replace `jyotish-astro-app.onrender.com
 The email in `ADMIN_EMAIL` automatically receives Admin role after Google login. Default:
 
 ```text
-devanand2008@gmail.com
+devanand.s2008@gmail.com
 ```
 
 ### New Production Features

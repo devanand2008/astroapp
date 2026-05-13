@@ -28,10 +28,10 @@ except ImportError:
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
-ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "devanand2008@gmail.com")
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "devanand.s2008@gmail.com").strip().lower()
 
 def check_admin(user: models.User):
-    if user.role != "Admin" or user.email != ADMIN_EMAIL:
+    if user.role != "Admin" or (user.email or "").strip().lower() != ADMIN_EMAIL:
         raise HTTPException(status_code=403, detail="Not authorized. Admin access required.")
 
 

@@ -21,7 +21,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 # ADMIN email — only this email gets Admin role
-ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "devanand2008@gmail.com")
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "devanand.s2008@gmail.com").strip().lower()
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -47,7 +47,7 @@ async def google_login(req: GoogleLoginRequest, db: Session = Depends(get_db)):
     try:
         idinfo = id_token.verify_oauth2_token(req.token, requests.Request(), GOOGLE_CLIENT_ID)
 
-        email = idinfo["email"]
+        email = idinfo["email"].strip().lower()
         name = idinfo.get("name", "Unknown")
         picture = idinfo.get("picture", "")
         google_id = idinfo["sub"]
@@ -76,9 +76,14 @@ async def google_login(req: GoogleLoginRequest, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(user)
         else:
-            # Ensure the designated admin keeps Admin role on every login
+            # Ensure the designated admin keeps Admin role on every login.
             if email == ADMIN_EMAIL and user.role != "Admin":
                 user.role = "Admin"
+                user.status = "Approved"
+                db.commit()
+                db.refresh(user)
+            elif email != ADMIN_EMAIL and user.role == "Admin":
+                user.role = "User"
                 user.status = "Approved"
                 db.commit()
                 db.refresh(user)

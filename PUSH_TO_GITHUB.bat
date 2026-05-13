@@ -22,7 +22,7 @@ if errorlevel 1 (
 
 cd /d "%ROOT%"
 
-git config --global user.email "devanand2008@gmail.com"
+git config --global user.email "devanand.s2008@gmail.com"
 git config --global user.name "Devanand"
 git config --global init.defaultBranch main
 

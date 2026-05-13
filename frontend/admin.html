@@ -13,9 +13,9 @@
   try { ud = JSON.parse(localStorage.getItem('user_data') || localStorage.getItem('user_info') || '{}'); } catch(e) { ud = {}; }
   if (!token) { window.location.href = window.jyotishPageUrl('login.html'); return; }
   // Only the designated admin email can access this panel
-  var ADMIN_EMAIL = 'devanand2008@gmail.com';
-  if (ud.role !== 'Admin' || ud.email !== ADMIN_EMAIL) {
-    alert('⛔ இந்த பக்கம் Admin மட்டும் அணுகலாம்! (devanand2008@gmail.com)');
+  var ADMIN_EMAIL = 'devanand.s2008@gmail.com';
+  if (ud.role !== 'Admin' || String(ud.email || '').toLowerCase() !== ADMIN_EMAIL) {
+    alert('⛔ இந்த பக்கம் Admin மட்டும் அணுகலாம்! (devanand.s2008@gmail.com)');
     window.location.href = window.jyotishPageUrl('index.html');
     return;
   }
