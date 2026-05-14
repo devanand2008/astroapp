@@ -100,7 +100,7 @@ If you create the Python service manually, use these exact values:
 ```text
 Root Directory: leave blank
 Build Command: pip install -r backend/requirements.txt
-Start Command: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+Start Command: sh -c 'cd backend && uvicorn main:app --host 0.0.0.0 --port ${PORT:-10000}'
 Health Check Path: /health
 ```
 
