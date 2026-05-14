@@ -21,6 +21,7 @@ from astro_engine import (
     calc_panchangam,
     calc_rise_set,
     calc_dasa_with_days,
+    calc_dasa_day_palan,
     tamil_date_from_gregorian,
 )
 
@@ -112,6 +113,12 @@ class PanchangamRequest(BaseModel):
 class CompatibilityRequest(BaseModel):
     person1: HoroscopeRequest
     person2: HoroscopeRequest
+
+
+class DashaDayRequest(HoroscopeRequest):
+    target_year:  int = Field(..., ge=1900, le=2100, example=2026)
+    target_month: int = Field(..., ge=1, le=12, example=5)
+    target_day:   int = Field(..., ge=1, le=31, example=14)
 
 
 # ────────────────────────────────
@@ -231,8 +238,79 @@ async def panchangam_post(req: PanchangamRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/api/dasha-day")
+async def dasha_day(req: DashaDayRequest, token: Optional[str] = None, db: Session = Depends(get_db)):
+    """Selected calendar day dasha-bhukti palan for an already known birth chart."""
+    try:
+        result = generate_horoscope(
+            year=req.year, month=req.month, day=req.day,
+            hour=req.hour, minute=req.minute,
+            lat=req.lat, lon=req.lon,
+            timezone_offset=req.timezone,
+        )
+        dob_str = f"{req.year}-{req.month:02d}-{req.day:02d}"
+        target = dt_date(req.target_year, req.target_month, req.target_day)
+        palan = calc_dasa_day_palan(
+            dob_str,
+            result["nakshatra"]["idx"],
+            result["meta"]["moon_deg"],
+            target,
+        )
+        palan["selected_panchangam"] = calc_panchangam(
+            req.target_year,
+            req.target_month,
+            req.target_day,
+            req.lat,
+            req.lon,
+            req.timezone,
+        )
+        palan["input"] = {
+            "name": req.name,
+            "dob": dob_str,
+            "time": f"{req.hour:02d}:{req.minute:02d}",
+            "place": req.place or "",
+            "gender": req.gender,
+            "father": req.father or "",
+            "mother": req.mother or "",
+            "state": req.state or "",
+            "district": req.district or "",
+            "lat": req.lat,
+            "lon": req.lon,
+        }
+        palan["chart_summary"] = {
+            "rasi": (result.get("rasi") or {}).get("ta", ""),
+            "nakshatra": (result.get("nakshatra") or {}).get("ta", ""),
+            "lagna": (result.get("lagna") or {}).get("ta", ""),
+        }
+
+        user_id = None
+        if token:
+            try:
+                user_id = auth.get_current_user(token, db).id
+            except Exception:
+                user_id = None
+        try:
+            db.add(models.AstrologyReport(
+                user_id=user_id,
+                report_type="dasha_day",
+                name=req.name,
+                dob=dob_str,
+                place=req.place or "",
+                rasi=palan["chart_summary"]["rasi"],
+                nakshatra=palan["chart_summary"]["nakshatra"],
+                lagna=palan["chart_summary"]["lagna"],
+                summary=f"Dasha day palan for {palan['selected_date']}: {palan['dasa']['ta']} / {palan['bhukti']['ta']}",
+                payload=json.dumps(palan, ensure_ascii=False, default=str)[:200000],
+            ))
+            db.commit()
+        except Exception:
+            db.rollback()
+        return palan
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 def _compatibility_score(h1: dict, h2: dict):
-    score = 50
     notes = []
     r1 = h1.get("rasi") or {}
     r2 = h2.get("rasi") or {}
@@ -241,40 +319,158 @@ def _compatibility_score(h1: dict, h2: dict):
     n1 = h1.get("nakshatra") or {}
     n2 = h2.get("nakshatra") or {}
 
-    distance = ((int(r2.get("num") or 1) - int(r1.get("num") or 1)) % 12) + 1
-    if distance in {1, 5, 7, 9, 11}:
-        score += 14
-        notes.append("Moon sign distance is supportive for emotional understanding.")
-    elif distance in {6, 8, 12}:
-        score -= 12
-        notes.append("Moon sign distance needs patience and conscious communication.")
-    else:
-        score += 4
-        notes.append("Moon sign distance is balanced.")
+    n1_idx = int(n1.get("idx") or 0)
+    n2_idx = int(n2.get("idx") or 0)
+    r1_num = int(r1.get("num") or 1)
+    r2_num = int(r2.get("num") or 1)
 
-    if r1.get("element") and r1.get("element") == r2.get("element"):
-        score += 10
-        notes.append("Both rasis share the same element, which improves rhythm.")
+    def nak_distance(a, b):
+        return ((b - a) % 27) + 1
 
-    if (n1.get("lord_en") or "") == (n2.get("lord_en") or ""):
-        score += 10
-        notes.append("Nakshatra lords match, giving similar instinctive patterns.")
-    elif abs(int(n1.get("idx") or 0) - int(n2.get("idx") or 0)) <= 3:
-        score += 5
-        notes.append("Nakshatras are close enough to build familiarity.")
+    def rasi_distance(a, b):
+        return ((b - a) % 12) + 1
 
-    if (l1.get("lord_en") or "") == (l2.get("lord_en") or ""):
-        score += 8
-        notes.append("Lagna lords align, supporting shared life direction.")
+    def add_porutham(key, label, points, area, detail):
+        return {
+            "key": key,
+            "label": label,
+            "points": points,
+            "max_points": 1,
+            "status": "Good" if points >= 1 else "Satisfactory" if points >= 0.5 else "Not Satisfactory",
+            "area": area,
+            "detail": detail,
+        }
 
-    score = max(0, min(100, score))
-    verdict = "Excellent" if score >= 80 else "Good" if score >= 65 else "Moderate" if score >= 45 else "Challenging"
+    d12 = rasi_distance(r1_num, r2_num)
+    n12 = nak_distance(n1_idx, n2_idx)
+    n21 = nak_distance(n2_idx, n1_idx)
+
+    gana1 = n1.get("gana") or ""
+    gana2 = n2.get("gana") or ""
+    gana_score = 1 if gana1 == gana2 else (0.5 if "ராட்சச" not in (gana1 + gana2) else 0)
+
+    def yoni_animal(v):
+        return (v or "").replace("ஆண் ", "").replace("பெண் ", "").strip()
+
+    yoni_same = yoni_animal(n1.get("yoni")) == yoni_animal(n2.get("yoni"))
+    yoni_score = 1 if yoni_same and n1.get("yoni") != n2.get("yoni") else 0.5 if yoni_same else 0
+
+    vedha_pairs = {
+        frozenset(pair) for pair in [
+            (0, 17), (1, 16), (2, 15), (3, 14), (4, 13), (5, 12), (6, 11),
+            (7, 10), (8, 9), (18, 26), (19, 25), (20, 24), (21, 23)
+        ]
+    }
+    veda_score = 0 if frozenset((n1_idx, n2_idx)) in vedha_pairs else 1
+
+    rajju_groups = [
+        {0, 8, 9, 17, 18, 26},
+        {1, 7, 10, 16, 19, 25},
+        {2, 6, 11, 15, 20, 24},
+        {3, 5, 12, 14, 21, 23},
+        {4, 13, 22},
+    ]
+    rajju1 = next((i for i, g in enumerate(rajju_groups) if n1_idx in g), -1)
+    rajju2 = next((i for i, g in enumerate(rajju_groups) if n2_idx in g), -2)
+    rajju_score = 0 if rajju1 == rajju2 else 1
+
+    dina_score = 1 if (n12 % 9) in {2, 4, 6, 8, 0} and (n21 % 9) in {2, 4, 6, 8, 0} else 0
+    mahendra_score = 1 if n12 in {4, 7, 10, 13, 16, 19, 22, 25} else 0
+    stree_score = 1 if n12 >= 13 else 0.5 if n12 >= 7 else 0
+    rasi_score = 0 if d12 in {2, 6, 8, 12} else 0.5 if d12 == 1 else 1
+
+    friends = {
+        "Sun": {"Moon", "Mars", "Jupiter"},
+        "Moon": {"Sun", "Mercury"},
+        "Mars": {"Sun", "Moon", "Jupiter"},
+        "Mercury": {"Sun", "Venus"},
+        "Jupiter": {"Sun", "Moon", "Mars"},
+        "Venus": {"Mercury", "Saturn"},
+        "Saturn": {"Mercury", "Venus"},
+    }
+    enemies = {
+        "Sun": {"Venus", "Saturn"},
+        "Moon": set(),
+        "Mars": {"Mercury"},
+        "Mercury": {"Moon"},
+        "Jupiter": {"Mercury", "Venus"},
+        "Venus": {"Sun", "Moon"},
+        "Saturn": {"Sun", "Moon", "Mars"},
+    }
+
+    def lord_relation(a, b):
+        if not a or not b:
+            return 0.5
+        if a == b:
+            return 1
+        if b in friends.get(a, set()) and a in friends.get(b, set()):
+            return 1
+        if b in enemies.get(a, set()) or a in enemies.get(b, set()):
+            return 0
+        return 0.5
+
+    lord_score = lord_relation(r1.get("lord_en"), r2.get("lord_en"))
+    same_element = r1.get("element") and r1.get("element") == r2.get("element")
+    vasya_score = 1 if same_element or d12 in {1, 7} else 0.5 if d12 in {3, 5, 9, 11} else 0
+
+    poruthams = [
+        add_porutham("dina", "Dina Porutham", dina_score, "Good health", f"Nakshatra distance {n12}/{n21}."),
+        add_porutham("gana", "Gana Porutham", gana_score, "Temperament", f"{gana1 or '-'} / {gana2 or '-'}."),
+        add_porutham("mahendra", "Mahendra Porutham", mahendra_score, "Wealth and growth", f"Distance from person 1 to person 2 is {n12}."),
+        add_porutham("stree_deergha", "Stree Deergha Porutham", stree_score, "Bride longevity", f"Nakshatra distance is {n12}."),
+        add_porutham("yoni", "Yoni Porutham", yoni_score, "Romantic harmony", f"{n1.get('yoni', '-')} / {n2.get('yoni', '-')}."),
+        add_porutham("veda", "Veda Porutham", veda_score, "Afflictions", "No vedha pair found." if veda_score else "Vedha pair needs careful review."),
+        add_porutham("rajju", "Rajju Porutham", rajju_score, "Marriage longevity", "Different rajju groups." if rajju_score else "Same rajju group needs caution."),
+        add_porutham("rasi", "Rasi Porutham", rasi_score, "Progeny and rhythm", f"Moon sign distance is {d12}."),
+        add_porutham("rasiyathipathi", "Rasiyathipathi Porutham", lord_score, "Affection", f"{r1.get('lord_en', '-')} / {r2.get('lord_en', '-')}."),
+        add_porutham("vasya", "Vasya Porutham", vasya_score, "Amenability", "Rasi influence compatibility."),
+    ]
+    porutham_total = round(sum(p["points"] for p in poruthams), 1)
+
+    def nadi(idx):
+        return ["Adi", "Madhya", "Antya"][idx % 3]
+
+    varna_rank = {"நீர்": 4, "நெருப்பு": 3, "நிலம்": 2, "காற்று": 1}
+    varna_points = 1 if varna_rank.get(r2.get("element"), 0) >= varna_rank.get(r1.get("element"), 0) else 0
+    nadi_points = 8 if nadi(n1_idx) != nadi(n2_idx) else 0
+    guna = [
+        {"label": "Varna Koot", "points": varna_points, "max_points": 1, "area": "Aptitude"},
+        {"label": "Vasya Koot", "points": vasya_score * 2, "max_points": 2, "area": "Amenability"},
+        {"label": "Tara Koot", "points": dina_score * 3, "max_points": 3, "area": "Compassion"},
+        {"label": "Yoni Koot", "points": yoni_score * 4, "max_points": 4, "area": "Chemistry"},
+        {"label": "Graha Maitri", "points": lord_score * 5, "max_points": 5, "area": "Affection"},
+        {"label": "Gana Koot", "points": gana_score * 6, "max_points": 6, "area": "Temperament"},
+        {"label": "Bhakoot Koot", "points": rasi_score * 7, "max_points": 7, "area": "Love"},
+        {"label": "Nadi Koot", "points": nadi_points, "max_points": 8, "area": "Progeny"},
+    ]
+    guna_total = round(sum(g["points"] for g in guna), 1)
+    score = round(((porutham_total / 10) * 0.55 + (guna_total / 36) * 0.45) * 100)
+
+    if rajju_score == 0:
+        notes.append("Rajju porutham is weak; traditional marriage matching treats this as a high-priority review item.")
+    if nadi_points == 0:
+        notes.append("Nadi koot is weak; review progeny/health indications with a full chart.")
+    if lord_score >= 1:
+        notes.append("Rasi lords are friendly, supporting affection and mutual understanding.")
+    if gana_score < 0.5:
+        notes.append("Gana temperament differs strongly; communication style needs conscious effort.")
+    if porutham_total >= 7:
+        notes.append("Dashakoota porutham is broadly supportive.")
+
+    verdict = "Excellent" if score >= 82 else "Good" if score >= 68 else "Average" if score >= 50 else "Needs Review"
     return {
         "score": score,
         "verdict": verdict,
         "notes": notes,
+        "porutham_total": porutham_total,
+        "porutham_max": 10,
+        "guna_total": guna_total,
+        "guna_max": 36,
+        "poruthams": poruthams,
+        "guna_milan": guna,
         "factors": {
-            "rasi_distance": distance,
+            "rasi_distance": d12,
+            "nakshatra_distance": n12,
             "person1_rasi": r1.get("ta", ""),
             "person2_rasi": r2.get("ta", ""),
             "person1_nakshatra": n1.get("ta", ""),
@@ -286,7 +482,7 @@ def _compatibility_score(h1: dict, h2: dict):
 
 
 @app.post("/api/compatibility")
-async def compatibility(req: CompatibilityRequest, db: Session = Depends(get_db)):
+async def compatibility(req: CompatibilityRequest, token: Optional[str] = None, db: Session = Depends(get_db)):
     """Basic compatibility report from two real horoscope calculations."""
     try:
         h1 = generate_horoscope(
@@ -308,12 +504,18 @@ async def compatibility(req: CompatibilityRequest, db: Session = Depends(get_db)
                 "rasi": h1.get("rasi"),
                 "nakshatra": h1.get("nakshatra"),
                 "lagna": h1.get("lagna"),
+                "dob": f"{req.person1.year}-{req.person1.month:02d}-{req.person1.day:02d}",
+                "time": f"{req.person1.hour:02d}:{req.person1.minute:02d}",
+                "place": req.person1.place or "",
             },
             "person2": {
                 "name": req.person2.name,
                 "rasi": h2.get("rasi"),
                 "nakshatra": h2.get("nakshatra"),
                 "lagna": h2.get("lagna"),
+                "dob": f"{req.person2.year}-{req.person2.month:02d}-{req.person2.day:02d}",
+                "time": f"{req.person2.hour:02d}:{req.person2.minute:02d}",
+                "place": req.person2.place or "",
             },
             "compatibility": match,
             "guidance": [
@@ -322,7 +524,14 @@ async def compatibility(req: CompatibilityRequest, db: Session = Depends(get_db)
             ],
         }
         try:
+            user_id = None
+            if token:
+                try:
+                    user_id = auth.get_current_user(token, db).id
+                except Exception:
+                    user_id = None
             db.add(models.AstrologyReport(
+                user_id=user_id,
                 report_type="compatibility",
                 name=f"{req.person1.name} + {req.person2.name}",
                 dob=f"{req.person1.year}-{req.person1.month:02d}-{req.person1.day:02d} / {req.person2.year}-{req.person2.month:02d}-{req.person2.day:02d}",

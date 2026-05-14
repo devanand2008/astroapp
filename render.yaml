@@ -10,6 +10,8 @@ services:
         generateValue: true
       - key: GOOGLE_CLIENT_ID
         value: 1055510399803-bv8vphrhlam8cn5uljii5cs8ghubcuvl.apps.googleusercontent.com
+      - key: GOOGLE_API_KEY
+        sync: false
       - key: ADMIN_EMAIL
         value: devanand.s2008@gmail.com
       - key: ALLOWED_ORIGINS

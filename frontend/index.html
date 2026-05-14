@@ -238,6 +238,10 @@
       display: none;
     }
 
+    .mobile-brandbar {
+      display: none;
+    }
+
     @media (min-width: 769px) {
       .sidebar-logo {
         display: block;
@@ -852,6 +856,131 @@
       font-weight: 700
     }
 
+    .dasha-date-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .dasha-date-row input {
+      width: 100%;
+      background: var(--surf2);
+      border: 1px solid var(--bdr);
+      color: var(--tx);
+      border-radius: 9px;
+      padding: 9px 10px;
+      font: inherit;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .dasha-day-result {
+      background: rgba(26, 173, 160, .07);
+      border: 1px solid rgba(26, 173, 160, .22);
+      border-radius: 10px;
+      padding: 11px;
+      color: var(--tx);
+      font-size: 11px;
+      line-height: 1.8;
+    }
+
+    .dasha-palan-title {
+      font-family: 'Noto Serif Tamil', serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold2);
+      margin-bottom: 5px;
+    }
+
+    .dasha-palan-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin: 8px 0;
+    }
+
+    .dasha-palan-pill {
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 8px;
+      padding: 7px;
+      font-size: 10px;
+      color: var(--mut);
+    }
+
+    .dasha-palan-pill strong {
+      display: block;
+      color: var(--gold2);
+      font-size: 12px;
+    }
+
+    @media(max-width:560px) {
+      .dasha-date-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .mobile-brandbar {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 202;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        background: rgba(16, 14, 30, .96);
+        border-bottom: 1px solid rgba(50, 44, 88, .85);
+        backdrop-filter: blur(10px);
+      }
+
+      .mobile-brand-name {
+        font-family: 'Cormorant Garamond', serif;
+        color: var(--gold);
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        line-height: 1;
+      }
+
+      .mobile-brand-ta {
+        font-family: 'Noto Serif Tamil', serif;
+        color: var(--gold2);
+        font-size: 11px;
+        margin-top: 2px;
+      }
+
+      .mobile-astro-view {
+        background: linear-gradient(135deg, var(--teal), var(--acc));
+        border: 0;
+        color: #fff;
+        border-radius: 10px;
+        padding: 9px 13px;
+        font-size: 12px;
+        font-weight: 800;
+        font-family: inherit;
+        white-space: nowrap;
+      }
+
+      .screen {
+        padding-top: 72px;
+      }
+
+      #s-welcome .logo-en {
+        font-size: 44px;
+        letter-spacing: 5px;
+      }
+
+      #s-welcome .logo-ta {
+        font-size: 24px;
+      }
+    }
+
     .chip-row {
       display: flex;
       flex-wrap: wrap;
@@ -1002,6 +1131,50 @@
       color: var(--gold2);
       font-size: 13px;
       text-align: center
+    }
+
+    .pdf-video-ad {
+      width: min(92vw, 420px);
+      background: var(--surf);
+      border: 1px solid rgba(200, 168, 75, .35);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
+    }
+
+    .pdf-video-ad[hidden] {
+      display: none;
+    }
+
+    .pdf-ad-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 10px;
+      background: rgba(0, 0, 0, .22);
+      font-size: 10px;
+      color: var(--mut);
+      font-family: 'Space Mono', monospace;
+      letter-spacing: .5px;
+    }
+
+    .pdf-ad-skip {
+      background: var(--surf2);
+      border: 1px solid var(--bdr);
+      color: var(--gold2);
+      border-radius: 8px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: inherit;
+    }
+
+    .pdf-video-ad video {
+      width: 100%;
+      max-height: 210px;
+      display: block;
+      background: #000;
     }
 
     /* ═══════════════════════════════════════════════
@@ -2408,7 +2581,7 @@
     .ads-mgmt-btn:hover { border-color: var(--gold); background: rgba(200,168,75,.18) }
 
     @media(max-width:560px) {
-      .screen { padding: 14px 12px 92px; }
+      .screen { padding: 72px 12px 92px; }
       .fr { flex-direction: column; gap: 0; }
       .act-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
       .act-btn { min-width: 0; padding: 10px 6px; }
@@ -2458,9 +2631,23 @@
   </script>
 
   <div class="app">
+    <div class="mobile-brandbar">
+      <div>
+        <div class="mobile-brand-name">JYOTISH</div>
+        <div class="mobile-brand-ta">ஜோதிடம்</div>
+      </div>
+      <button class="mobile-astro-view" onclick="nav('s-form')">Astro View</button>
+    </div>
 
     <!-- PDF overlay -->
     <div id="pdfo">
+      <div class="pdf-video-ad" id="pdf-video-ad" hidden>
+        <div class="pdf-ad-top">
+          <span>Advertisement</span>
+          <button class="pdf-ad-skip" onclick="skipPdfVideoAd()">Skip Ad</button>
+        </div>
+        <video id="pdf-video-ad-player" muted playsinline></video>
+      </div>
       <div class="ring2"></div>
       <p id="pdft">PDF தயாராகிறது...</p>
     </div>
@@ -2768,6 +2955,14 @@
       <div class="dc" style="width:100%;max-width:380px;">
         <div class="dch">தற்போதைய புக்தி · Current Bhukti</div>
         <div id="bhukti-list"></div>
+      </div>
+      <div class="dc" style="width:100%;max-width:380px;">
+        <div class="dch">Day by Day Dasha Palan</div>
+        <div class="dasha-date-row">
+          <input id="dasha-page-date" type="date">
+          <button class="btn-sm" onclick="loadDashaDayFromPage()">Show Palan</button>
+        </div>
+        <div id="dasha-day-result" class="dasha-day-result">Select a date to view the full dasha-bhukti palan for that day.</div>
       </div>
       <div class="ad-slot" id="ad-slot-bottom"></div>
       <nav class="bnav" id="nav-dasa">
@@ -3151,6 +3346,11 @@
       <div class="ddm-title">தசை நாள் விவரம்</div>
       <div class="ddm-sub"></div>
       <div class="days-today-badge"></div>
+      <div class="dasha-date-row">
+        <input id="ddm-date" type="date">
+        <button class="btn-sm" onclick="loadDashaDayFromModal()">Show Palan</button>
+      </div>
+      <div id="ddm-day-result" class="dasha-day-result">Select a date inside this dasha period.</div>
       <div id="ddm-bhukti-bars" style="margin-top:10px;"></div>
     </div>
   </div>
@@ -3341,7 +3541,9 @@
         const [yr, mo, dy] = dob.split('-').map(Number);
         const [hr, mn] = time.split(':').map(Number);
         const payload = { name, year: yr, month: mo, day: dy, hour: hr, minute: mn, lat, lon, gender, place, father, mother, state, district, timezone: 5.5 };
-        const res = await fetch(`${API_BASE}/api/horoscope`, {
+        const tkn = localStorage.getItem('auth_token') || '';
+        const horoscopeUrl = tkn ? `${API_BASE}/api/horoscope?token=${encodeURIComponent(tkn)}` : `${API_BASE}/api/horoscope`;
+        const res = await fetch(horoscopeUrl, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'API error'); }
@@ -3479,6 +3681,131 @@
         bh += `<div class="bhi${isA ? ' actb' : ''}">${b.ta}${isA ? ' ◀' : ''}${bdText}<span>${b.start}-${b.end}</span></div>`;
       });
       document.getElementById('bhukti-list').innerHTML = bh;
+      ensureDashaPageDate();
+      loadDashaDayFromPage(true);
+    }
+
+    let activeDashaModal = null;
+
+    function escHtml(v) {
+      return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function todayISO() {
+      const d = new Date();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return d.getFullYear() + '-' + m + '-' + day;
+    }
+
+    function dmyToISO(v) {
+      const parts = String(v || '').split('-');
+      if (parts.length !== 3) return todayISO();
+      return parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
+    }
+
+    function clampISO(value, min, max) {
+      if (min && value < min) return min;
+      if (max && value > max) return max;
+      return value;
+    }
+
+    function ensureDashaPageDate() {
+      const el = document.getElementById('dasha-page-date');
+      if (el && !el.value) el.value = todayISO();
+    }
+
+    function dashaDayPayload(dateIso) {
+      if (!CD || !CD.input) throw new Error('Please calculate the horoscope first.');
+      const input = CD.input;
+      const dob = String(input.dob || '').split('-').map(Number);
+      const time = String(input.time || '00:00').split(':').map(Number);
+      const target = String(dateIso || todayISO()).split('-').map(Number);
+      if (dob.length !== 3 || target.length !== 3) throw new Error('Invalid date.');
+      return {
+        name: input.name || 'User',
+        year: dob[0], month: dob[1], day: dob[2],
+        hour: time[0] || 0, minute: time[1] || 0,
+        lat: parseFloat(input.lat) || 11.6643,
+        lon: parseFloat(input.lon) || 78.1460,
+        timezone: 5.5,
+        gender: input.gender || '',
+        place: input.place || '',
+        father: input.father || '',
+        mother: input.mother || '',
+        state: input.state || '',
+        district: input.district || '',
+        target_year: target[0],
+        target_month: target[1],
+        target_day: target[2]
+      };
+    }
+
+    async function fetchDashaDayPalan(dateIso) {
+      const tkn = localStorage.getItem('auth_token') || '';
+      const url = tkn
+        ? `${API_BASE}/api/dasha-day?token=${encodeURIComponent(tkn)}`
+        : `${API_BASE}/api/dasha-day`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dashaDayPayload(dateIso))
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Dasha day API failed.');
+      return data;
+    }
+
+    function renderDashaDayPalan(data, targetId) {
+      const el = document.getElementById(targetId);
+      if (!el) return;
+      const p = data.palan || {};
+      const d = data.dasa || {};
+      const b = data.bhukti || {};
+      const pj = data.selected_panchangam || {};
+      const focus = (p.focus || []).map(x => '<div>' + escHtml(x) + '</div>').join('');
+      el.innerHTML =
+        '<div class="dasha-palan-title">' + escHtml(p.title || 'Daily Dasha Palan') + '</div>' +
+        '<div style="color:var(--mut);font-size:10px;margin-bottom:6px;">' + escHtml(data.display_date || data.selected_date || '') + ' · ' + escHtml(data.weekday || '') + '</div>' +
+        '<div class="dasha-palan-meta">' +
+          '<div class="dasha-palan-pill">Dasha<strong>' + escHtml(d.ta || '-') + '</strong>Day ' + escHtml(d.day_number || '-') + ' / ' + escHtml(d.days_total || '-') + '</div>' +
+          '<div class="dasha-palan-pill">Bhukti<strong>' + escHtml(b.ta || '-') + '</strong>Day ' + escHtml(b.day_number || '-') + ' / ' + escHtml(b.days_total || '-') + '</div>' +
+        '</div>' +
+        '<div>' + escHtml(p.summary || '') + '</div>' +
+        (focus ? '<div style="margin-top:8px;color:var(--gold2);font-weight:700;">Focus</div>' + focus : '') +
+        '<div style="margin-top:8px;"><strong style="color:var(--teal)">Favorable:</strong> ' + escHtml(p.favorable || '') + '</div>' +
+        '<div><strong style="color:var(--red)">Caution:</strong> ' + escHtml(p.caution || '') + '</div>' +
+        '<div><strong style="color:var(--gold)">Remedy:</strong> ' + escHtml(p.remedy || '') + '</div>' +
+        (pj.tithi ? '<div style="margin-top:8px;color:var(--mut);font-size:10px;">Panchangam: ' + escHtml(pj.tithi) + ' · ' + escHtml(pj.nakshatra) + ' · Rahu ' + escHtml(pj.rahu_kalam) + '</div>' : '');
+    }
+
+    async function loadDashaDay(targetId, dateIso) {
+      const el = document.getElementById(targetId);
+      if (el) el.innerHTML = '<span style="color:var(--mut)">Loading selected day palan...</span>';
+      try {
+        const data = await fetchDashaDayPalan(dateIso);
+        renderDashaDayPalan(data, targetId);
+      } catch (e) {
+        if (el) el.innerHTML = '<span style="color:var(--red)">Error: ' + escHtml(e.message) + '</span>';
+      }
+    }
+
+    function loadDashaDayFromPage(auto) {
+      ensureDashaPageDate();
+      const el = document.getElementById('dasha-page-date');
+      if (!auto && !CD.rasi) { nav('s-form'); return; }
+      return loadDashaDay('dasha-day-result', el ? el.value : todayISO());
+    }
+
+    function loadDashaDayFromModal() {
+      const el = document.getElementById('ddm-date');
+      const dateIso = el ? el.value : todayISO();
+      return loadDashaDay('ddm-day-result', dateIso);
     }
 
     function showDasaDayModal(lord, ta, start, end, fullYrs) {
@@ -3513,7 +3840,17 @@
       }
       const barsEl = document.getElementById('ddm-bhukti-bars');
       if (barsEl) barsEl.innerHTML = bRows || '<div style="color:var(--mut);font-size:11px;text-align:center;padding:10px">புக்தி விவரங்கள் கிடைக்கவில்லை</div>';
+      activeDashaModal = { lord: lord, start: dmyToISO(start), end: dmyToISO(end) };
+      const dateInput = document.getElementById('ddm-date');
+      if (dateInput) {
+        dateInput.min = activeDashaModal.start;
+        dateInput.max = activeDashaModal.end;
+        dateInput.value = clampISO(todayISO(), activeDashaModal.start, activeDashaModal.end);
+      }
+      const resultEl = document.getElementById('ddm-day-result');
+      if (resultEl) resultEl.innerHTML = 'Loading selected day palan...';
       modal.classList.add('show');
+      loadDashaDayFromModal();
     }
 
     function buildPariharam(pariharams) {
@@ -4502,10 +4839,49 @@ Write a detailed Tamil horoscope reading (6-8 sentences) covering personality, c
       });
     }
 
+    function startPdfVideoAd() {
+      const box = document.getElementById('pdf-video-ad');
+      const video = document.getElementById('pdf-video-ad-player');
+      if (!box || !video || !window.getVideoAd) return;
+      const ad = window.getVideoAd();
+      if (!ad || !ad.src) return;
+      box.hidden = false;
+      video.src = ad.src;
+      video.muted = true;
+      video.loop = true;
+      video.play().catch(() => {});
+      if (window.trackJyotishAd && ad.id) window.trackJyotishAd(ad.id, 'impression', 'pdf-loading');
+    }
+
+    function skipPdfVideoAd() {
+      const box = document.getElementById('pdf-video-ad');
+      const video = document.getElementById('pdf-video-ad-player');
+      if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      }
+      if (box) box.hidden = true;
+    }
+
+    function showPdfOverlay(message) {
+      const ovl = document.getElementById('pdfo');
+      const txt = document.getElementById('pdft');
+      if (txt && message) txt.textContent = message;
+      if (ovl) ovl.classList.add('show');
+      startPdfVideoAd();
+    }
+
+    function hidePdfOverlay() {
+      skipPdfVideoAd();
+      const ovl = document.getElementById('pdfo');
+      if (ovl) ovl.classList.remove('show');
+    }
+
     async function downloadPDF() {
       if (!CD.rasi) { alert('முதலில் ஜாதகம் கணக்கிடவும்!'); return; }
       const ovl = document.getElementById('pdfo'), txt = document.getElementById('pdft');
-      ovl.classList.add('show');
+      showPdfOverlay('PDF தயாராகிறது...');
       try {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -4533,10 +4909,10 @@ Write a detailed Tamil horoscope reading (6-8 sentences) covering personality, c
         }
         txt.textContent = 'PDF சேமிக்கப்படுகிறது...';
         pdf.save(`${CD.input.name}_ஜாதக_அறிக்கை.pdf`);
-        ovl.classList.remove('show');
+        hidePdfOverlay();
         setTimeout(() => alert('✅ PDF வெற்றிகரமாக பதிவிறக்கம் ஆனது!'), 200);
       } catch (e) {
-        ovl.classList.remove('show');
+        hidePdfOverlay();
         alert('PDF Error: ' + e.message);
       }
     }
@@ -4544,7 +4920,7 @@ Write a detailed Tamil horoscope reading (6-8 sentences) covering personality, c
     async function downloadKuripuPDF() {
       if (!CD.rasi) { alert('முதலில் ஜாதகம் கணக்கிடவும்!'); return; }
       const ovl = document.getElementById('pdfo'), txt = document.getElementById('pdft');
-      ovl.classList.add('show');
+      showPdfOverlay('குறிப்பு PDF தயாராகிறது...');
       try {
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -4567,10 +4943,10 @@ Write a detailed Tamil horoscope reading (6-8 sentences) covering personality, c
         }
 
         pdf.save(`${CD.input.name}_குறிப்பு.pdf`);
-        ovl.classList.remove('show');
+        hidePdfOverlay();
         setTimeout(() => alert('✅ குறிப்பு PDF தயார்!'), 200);
       } catch (e) {
-        ovl.classList.remove('show');
+        hidePdfOverlay();
         alert('PDF Error: ' + e.message);
       }
     }
@@ -4579,7 +4955,7 @@ Write a detailed Tamil horoscope reading (6-8 sentences) covering personality, c
       const pj = todayPanchangam;
       if (!pj) { alert('பஞ்சாங்கம் ஏற்றப்படவில்லை'); return; }
       const ovl = document.getElementById('pdfo'), txt = document.getElementById('pdft');
-      if(ovl) { ovl.classList.add('show'); txt.textContent = 'பஞ்சாங்கம் PDF தயாராகிறது...'; }
+      showPdfOverlay('பஞ்சாங்கம் PDF தயாராகிறது...');
       
       const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${pdfGF()}${pdfCSS()}</head><body><div class="page"><div class="watermark">JYOTISH App · ஜோதிடம்</div>
       <div class="hdr"><div class="hdr-t">திருக்கணித பஞ்சாங்கம்</div><div class="hdr-s">${pj.date} | ${pj.tamil_date} | ${pj.vara_ta}</div></div>
@@ -4645,10 +5021,10 @@ Write a detailed Tamil horoscope reading (6-8 sentences) covering personality, c
         }
 
         pdf.save(`Panchangam_${pj.date}.pdf`);
-        if(ovl) ovl.classList.remove('show');
+        hidePdfOverlay();
         setTimeout(() => alert('✅ பஞ்சாங்கம் PDF தயார்!'), 200);
       } catch(e) {
-        if(ovl) ovl.classList.remove('show');
+        hidePdfOverlay();
         alert('PDF Error: ' + e.message);
       }
     }

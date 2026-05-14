@@ -41,13 +41,21 @@ button.secondary{background:var(--surf2);border:1px solid var(--bdr);color:var(-
 .fact span{color:var(--mut);font-size:12px}
 .notes{margin-top:14px;display:grid;gap:8px}
 .note{background:rgba(26,173,160,.08);border:1px solid rgba(26,173,160,.25);border-radius:9px;padding:10px;color:#c8fff8;font-size:13px;line-height:1.6}
+.breakdown{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.break-card{background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:12px}
+.break-card h3{font-size:14px;color:var(--gold2);margin-bottom:8px}
+.break-row{display:grid;grid-template-columns:1.4fr .45fr 1fr;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px}
+.break-row:last-child{border-bottom:0}
+.break-row b{color:var(--tx)}
+.break-row span{color:var(--mut)}
+.break-score{color:var(--teal)!important;font-weight:800;text-align:right}
 .err{color:var(--red);font-size:13px;margin-top:10px}
 .ad-slot{display:none;margin:18px 0}
 .ad-slot.show{display:block}
 .ad-wrap{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:10px;text-align:center;position:relative}
 .ad-label{position:absolute;top:6px;left:8px;font-size:9px;color:var(--mut);background:rgba(0,0,0,.45);border-radius:99px;padding:2px 7px}
 .ad-media{max-width:100%;max-height:220px;object-fit:contain;border-radius:8px}
-@media(max-width:760px){.grid,.score{grid-template-columns:1fr}.fields,.facts{grid-template-columns:1fr}.meter{margin:0 auto}.top-inner{align-items:flex-start;flex-direction:column}}
+@media(max-width:760px){.grid,.score,.breakdown{grid-template-columns:1fr}.fields,.facts{grid-template-columns:1fr}.meter{margin:0 auto}.top-inner{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
 <body>
@@ -81,6 +89,7 @@ button.secondary{background:var(--surf2);border:1px solid var(--bdr);color:var(-
       </div>
     </div>
     <div class="facts" id="facts"></div>
+    <div class="breakdown" id="breakdown"></div>
     <div class="notes" id="notes"></div>
   </section>
   <div class="ad-slot" id="ad-slot-bottom"></div>
@@ -89,6 +98,10 @@ button.secondary{background:var(--surf2);border:1px solid var(--bdr);color:var(-
 const API = window.resolveJyotishApiBase();
 const token = localStorage.getItem('auth_token');
 if (!token) location.href = window.jyotishPageUrl('login.html');
+
+function esc(v) {
+  return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 function fields(prefix) {
   document.getElementById(prefix).innerHTML = `
@@ -124,7 +137,7 @@ async function runCompatibility() {
   err.textContent = '';
   try {
     const body = { person1: payload('p1'), person2: payload('p2') };
-    const res = await fetch(`${API}/api/compatibility`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const res = await fetch(`${API}/api/compatibility?token=${encodeURIComponent(token)}`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Compatibility API failed.');
     renderResult(data);
@@ -137,17 +150,25 @@ function renderResult(data) {
   document.getElementById('meter').style.setProperty('--p', c.score || 0);
   document.getElementById('score').textContent = c.score || 0;
   document.getElementById('verdict').textContent = c.verdict || 'Result';
-  document.getElementById('summary').textContent = `${data.person1.name} and ${data.person2.name} compatibility based on rasi, nakshatra and lagna signals.`;
+  document.getElementById('summary').textContent = `${data.person1.name} and ${data.person2.name}: ${c.porutham_total || 0}/10 Porutham, ${c.guna_total || 0}/36 Guna Milan.`;
   const f = c.factors || {};
   document.getElementById('facts').innerHTML = [
-    ['Person 1 Rasi', f.person1_rasi],
-    ['Person 2 Rasi', f.person2_rasi],
-    ['Person 1 Nakshatra', f.person1_nakshatra],
-    ['Person 2 Nakshatra', f.person2_nakshatra],
-    ['Person 1 Lagna', f.person1_lagna],
-    ['Person 2 Lagna', f.person2_lagna]
-  ].map(x => `<div class="fact"><b>${x[0]}</b><span>${x[1] || '-'}</span></div>`).join('');
-  document.getElementById('notes').innerHTML = (c.notes || []).concat(data.guidance || []).map(n => `<div class="note">${n}</div>`).join('');
+    [data.person1.name + ' Rasi', f.person1_rasi],
+    [data.person2.name + ' Rasi', f.person2_rasi],
+    [data.person1.name + ' Nakshatra', f.person1_nakshatra],
+    [data.person2.name + ' Nakshatra', f.person2_nakshatra],
+    [data.person1.name + ' Lagna', f.person1_lagna],
+    [data.person2.name + ' Lagna', f.person2_lagna],
+    ['Porutham Mark', `${c.porutham_total || 0}/${c.porutham_max || 10}`],
+    ['Guna Mark', `${c.guna_total || 0}/${c.guna_max || 36}`],
+    ['Rasi Distance', f.rasi_distance || '-']
+  ].map(x => `<div class="fact"><b>${esc(x[0])}</b><span>${esc(x[1] || '-')}</span></div>`).join('');
+  const poruthams = (c.poruthams || []).map(p => `<div class="break-row"><b>${esc(p.label)}</b><span class="break-score">${esc(p.points)}/${esc(p.max_points)}</span><span>${esc(p.area)}</span></div>`).join('');
+  const guna = (c.guna_milan || []).map(g => `<div class="break-row"><b>${esc(g.label)}</b><span class="break-score">${esc(g.points)}/${esc(g.max_points)}</span><span>${esc(g.area)}</span></div>`).join('');
+  document.getElementById('breakdown').innerHTML = `
+    <div class="break-card"><h3>Dashakoota / Porutham</h3>${poruthams || '<div class="note">No porutham breakdown.</div>'}</div>
+    <div class="break-card"><h3>Ashtakoota / Guna Milan</h3>${guna || '<div class="note">No guna breakdown.</div>'}</div>`;
+  document.getElementById('notes').innerHTML = (c.notes || []).concat(data.guidance || []).map(n => `<div class="note">${esc(n)}</div>`).join('');
   if (window.renderJyotishAds) window.renderJyotishAds();
 }
 

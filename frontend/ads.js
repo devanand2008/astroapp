@@ -235,6 +235,16 @@ function getPdfAdSrc() {
   return adSrc(ad);
 }
 
+function getVideoAd() {
+  if (activeAds.video_enabled === false || activeAds.web_enabled === false) return null;
+  return getAd('video', 0);
+}
+
+function getVideoAdSrc() {
+  const ad = getVideoAd();
+  return adSrc(ad);
+}
+
 function saveLocalAd(type, dataUrl) {
   const stored = localStorage.getItem(ADS_LS_KEY);
   const d = stored ? JSON.parse(stored) : {};
@@ -275,6 +285,8 @@ function removeLocalAd(type) {
 window.renderJyotishAds = renderAds;
 window.reloadJyotishAds = loadAds;
 window.getPdfAdSrc = getPdfAdSrc;
+window.getVideoAd = getVideoAd;
+window.getVideoAdSrc = getVideoAdSrc;
 window.trackJyotishAd = trackJyotishAd;
 
 document.addEventListener('DOMContentLoaded', () => { loadAds(); });

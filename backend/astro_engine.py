@@ -1055,3 +1055,141 @@ def calc_dasa_with_days(dob_str: str, nak_idx: int, moon_deg: float) -> dict:
         "bhukti_detailed":  bhukti_detailed,
     }
 
+
+def _period_day_stats(period: dict, as_of: datetime) -> dict:
+    total = max(1, (period["end"] - period["start"]).days)
+    elapsed = min(total, max(0, (as_of - period["start"]).days + 1))
+    remaining = max(0, (period["end"] - as_of).days)
+    return {
+        "lord": period["lord"],
+        "ta": period["ta"],
+        "start": period["start"].strftime("%d-%m-%Y"),
+        "end": period["end"].strftime("%d-%m-%Y"),
+        "days_total": total,
+        "day_number": elapsed,
+        "days_elapsed": elapsed,
+        "days_remaining": remaining,
+        "progress_percent": round(elapsed * 100 / total, 1),
+        "yrs": round(period["yrs"], 2),
+        "full_yrs": period.get("full_yrs", period["yrs"]),
+    }
+
+
+def _dasa_day_text(dasa_lord: str, bhukti_lord: str, progress: float) -> dict:
+    themes = {
+        "Ketu": {
+            "focus": "inner clarity, detachment, prayer, old karmic closures",
+            "good": "quiet decisions, spiritual practice, research, removing clutter",
+            "care": "avoid sudden isolation, harsh speech, and incomplete paperwork",
+            "remedy": "light a lamp for Ganesha or do a short mantra before starting work",
+        },
+        "Venus": {
+            "focus": "relationships, comfort, art, finance, vehicles, agreements",
+            "good": "family talks, creative work, purchases planned with discipline",
+            "care": "avoid overspending and emotional bargaining",
+            "remedy": "offer white flowers or keep speech gentle with close people",
+        },
+        "Sun": {
+            "focus": "authority, confidence, fatherly support, health, recognition",
+            "good": "government work, leadership, interviews, direct communication",
+            "care": "avoid ego clashes and careless decisions made in anger",
+            "remedy": "offer water to the Sun in the morning and keep promises clear",
+        },
+        "Moon": {
+            "focus": "mind, mother, home, travel, public response, emotional balance",
+            "good": "home matters, caring conversations, food, water-related tasks",
+            "care": "avoid mood-based commitments and unnecessary worry",
+            "remedy": "spend a few minutes near water or chant a Moon mantra calmly",
+        },
+        "Mars": {
+            "focus": "courage, property, tools, competition, speed, physical energy",
+            "good": "action plans, workouts, technical fixes, land or repair work",
+            "care": "avoid arguments, risky driving, cuts, burns, and impatience",
+            "remedy": "pray to Murugan or Hanuman before starting difficult tasks",
+        },
+        "Rahu": {
+            "focus": "ambition, technology, foreign links, unusual chances, visibility",
+            "good": "online work, strategy, marketing, learning new systems",
+            "care": "verify facts twice and avoid shortcuts that can create stress",
+            "remedy": "keep the day simple and donate food or help someone quietly",
+        },
+        "Jupiter": {
+            "focus": "wisdom, teachers, children, finance, blessings, counsel",
+            "good": "study, advice, legal or financial planning, family blessings",
+            "care": "avoid overconfidence and promises beyond your capacity",
+            "remedy": "honor a teacher/elder or chant Guru mantra with gratitude",
+        },
+        "Saturn": {
+            "focus": "work, duty, delays, discipline, long-term stability",
+            "good": "slow steady work, pending tasks, service, practical planning",
+            "care": "avoid laziness, fear, and delaying health or responsibility matters",
+            "remedy": "help workers/elders or do a small act of service without display",
+        },
+        "Mercury": {
+            "focus": "speech, study, trade, documents, travel, calculations",
+            "good": "calls, writing, accounts, exams, business discussions",
+            "care": "avoid gossip, confused messages, and signing without reading",
+            "remedy": "start with a Vishnu prayer and keep written notes for decisions",
+        },
+    }
+    d = themes.get(dasa_lord, themes["Jupiter"])
+    b = themes.get(bhukti_lord, themes["Mercury"])
+    phase = "beginning"
+    if progress >= 70:
+        phase = "ending"
+    elif progress >= 35:
+        phase = "middle"
+    title = f"{DASA_TA.get(dasa_lord, dasa_lord)} dasa - {DASA_TA.get(bhukti_lord, bhukti_lord)} bhukti daily palan"
+    summary = (
+        f"This selected day works through {dasa_lord} mahadasha and {bhukti_lord} bhukti. "
+        f"The main current is {d['focus']}; the sub-current adds {b['focus']}. "
+        f"Because this bhukti is in its {phase} phase, use the day for practical action with measured timing."
+    )
+    return {
+        "title": title,
+        "summary": summary,
+        "focus": [d["focus"], b["focus"]],
+        "favorable": f"Best for: {d['good']}; also supports {b['good']}.",
+        "caution": f"Careful with: {d['care']}; also watch {b['care']}.",
+        "remedy": d["remedy"],
+    }
+
+
+def calc_dasa_day_palan(dob_str: str, nak_idx: int, moon_deg: float, selected_date) -> dict:
+    """
+    Dasha-bhukti palan for one selected calendar day.
+    selected_date may be a date, datetime, or YYYY-MM-DD string.
+    """
+    if isinstance(selected_date, str):
+        as_date = datetime.strptime(selected_date, "%Y-%m-%d").date()
+    elif isinstance(selected_date, datetime):
+        as_date = selected_date.date()
+    else:
+        as_date = selected_date
+
+    as_of = datetime(as_date.year, as_date.month, as_date.day, 12, 0, 0)
+    dasas = calc_dasa_timeline(dob_str, nak_idx, moon_deg)
+    if as_of < dasas[0]["start"]:
+        cur_dasa = dasas[0]
+    elif as_of >= dasas[-1]["end"]:
+        cur_dasa = dasas[-1]
+    else:
+        cur_dasa = next(d for d in dasas if d["start"] <= as_of < d["end"])
+    bhuktis = calc_bhukti(cur_dasa)
+    if as_of < bhuktis[0]["start"]:
+        cur_bhukti = bhuktis[0]
+    elif as_of >= bhuktis[-1]["end"]:
+        cur_bhukti = bhuktis[-1]
+    else:
+        cur_bhukti = next(b for b in bhuktis if b["start"] <= as_of < b["end"])
+
+    d_stats = _period_day_stats(cur_dasa, as_of)
+    b_stats = _period_day_stats(cur_bhukti, as_of)
+    return {
+        "selected_date": as_date.strftime("%Y-%m-%d"),
+        "display_date": as_date.strftime("%d-%m-%Y"),
+        "weekday": as_date.strftime("%A"),
+        "dasa": d_stats,
+        "bhukti": b_stats,
+        "palan": _dasa_day_text(cur_dasa["lord"], cur_bhukti["lord"], b_stats["progress_percent"]),
+    }

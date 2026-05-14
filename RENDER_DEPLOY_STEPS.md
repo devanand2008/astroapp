@@ -48,7 +48,23 @@ jyotish-astro-app
 jyotish-video-signaling
 ```
 
-## 3A. Change Admin Email On An Existing Render Website
+## 3A. Add Gemini API Key For AI Chat
+
+Do not commit the Google API key to GitHub. In Render, set it as an environment variable:
+
+1. Open `jyotish-astro-app` in Render.
+2. Go to `Environment`.
+3. Add or edit:
+
+```text
+GOOGLE_API_KEY=your-google-gemini-api-key
+```
+
+4. Click `Save and deploy`.
+
+The backend reads `GOOGLE_API_KEY` first and falls back to `GEMINI_API_KEY`.
+
+## 3B. Change Admin Email On An Existing Render Website
 
 For the already deployed website, update both the code and the Render environment variable:
 
